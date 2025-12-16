@@ -1,0 +1,202 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rijmen & Baskara - Home</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'css/contact.css' %}">
+  <link rel="stylesheet" href="{% static 'css/home.css' %}">
+</head>
+
+<body>
+  <div class="page-frame">
+    <div class="page" role="document">
+      <!-- Custom visual scrollbar hugging the right side -->
+      <div class="scrollbar" aria-hidden="true">
+        <div class="scrollbar__thumb" id="scrollThumb"></div>
+      </div>
+
+      <!-- Scrollable interior -->
+      <div class="page-scroll" id="pageScroll">
+        <!-- Top navigation -->
+        <header class="topbar">
+          <div class="brand">
+            <a href="{% url 'home' %}" class="brand__link">R&amp;B</a>
+          </div>
+
+          <nav class="nav" aria-label="Primary">
+            <a class="nav__link" href="{% url 'works' %}">Works</a>
+            <a class="nav__link" href="{% url 'articles' %}">Article</a>
+            <a class="nav__link" href="{% url 'about' %}">About</a>
+            <a class="nav__link" href="{% url 'contact' %}">Contact</a>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+              <span class="theme-icon">☀️</span>
+            </button>
+          </nav>
+        </header>
+
+        <!-- Main content -->
+        <main class="content home-content">
+          <!-- Hero Section -->
+          <section class="hero-section">
+            <h1 class="hero-title">
+              RIJMEN &amp;<br />
+              BASKARA
+            </h1>
+            <p class="hero-subtitle">Creates bespoke scale models<br />from Jakarta, Indonesia.</p>
+            
+            <div class="hero-description">
+              <p><strong>RIJMEN &amp; BASKARA</strong> creates <em>Bespoke Models</em> for <em>Historical Preservation</em> and <em>Visual Display</em></p>
+            </div>
+
+            <!-- Video/Image Placeholder -->
+            <div class="video-placeholder">
+              <button class="play-button" aria-label="Play video">
+                <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                  <circle cx="30" cy="30" r="29" stroke="currentColor" stroke-width="2"/>
+                  <path d="M24 20L40 30L24 40V20Z" fill="currentColor"/>
+                </svg>
+              </button>
+            </div>
+          </section>
+
+          <!-- Works Section -->
+          <section class="works-section">
+            <h2 class="section-title">Works</h2>
+            <div class="works-grid">
+              <div class="work-card">
+                <div class="work-image"></div>
+                <h3 class="work-title">1/48 British<br />Spitfire Mk XIV</h3>
+              </div>
+              <div class="work-card">
+                <div class="work-image"></div>
+                <h3 class="work-title">1/48 Tamiya<br />M48A3 Patton</h3>
+              </div>
+              <div class="work-card">
+                <div class="work-image"></div>
+                <h3 class="work-title">1/12 McLaren<br />M23</h3>
+              </div>
+              <div class="work-card">
+                <div class="work-image"></div>
+                <h3 class="work-title">1/35 Russian<br />KV-2</h3>
+              </div>
+              <div class="work-card">
+                <div class="work-image"></div>
+                <h3 class="work-title">1/800 USS<br />NIMITZ</h3>
+              </div>
+            </div>
+          </section>
+
+          <!-- Featured Articles Section -->
+          <section class="articles-section">
+            <div class="section-header">
+              <h2 class="section-title">Featured Articles</h2>
+              <a href="{% url 'articles' %}" class="view-all-link">View All</a>
+            </div>
+            
+            <div class="articles-scroll-container">
+              <div class="articles-scroll">
+                <article class="article-card">
+                  <div class="article-image"></div>
+                  <div class="article-content">
+                    <h3 class="article-title">The Definitive Eduard Hawker Tempest Mk.V Review</h3>
+                    <p class="article-excerpt">The Tempest was born out of an attempt to fix the problems of the Hawker Typhoon. We'd had been going on in the 'Hawker design office since 1940s...</p>
+                  </div>
+                </article>
+
+                <article class="article-card">
+                  <div class="article-image"></div>
+                  <div class="article-content">
+                    <h3 class="article-title">Building the Revell PT 579/588</h3>
+                    <p class="article-excerpt">The Elco was the premiere boat used in the Pacific, and it came into its own as a gunboat. Proving especially effective once employed in the anti-shipping role...</p>
+                  </div>
+                </article>
+
+                <article class="article-card">
+                  <div class="article-image"></div>
+                  <div class="article-content">
+                    <h3 class="article-title">Building the Revell Monogram A-26 Invader</h3>
+                    <p class="article-excerpt">This kit originally came its appearance in 1993 as an A-26C under the Monogram Monogram, and the engraving on the kit indicates Revell-Monogram...</p>
+                  </div>
+                </article>
+
+                <article class="article-card">
+                  <div class="article-image"></div>
+                  <div class="article-content">
+                    <h3 class="article-title">Scale Modeling Techniques</h3>
+                    <p class="article-excerpt">Explore advanced techniques for creating realistic scale models with attention to detail and historical accuracy...</p>
+                  </div>
+                </article>
+              </div>
+            </div>
+            
+            <a href="{% url 'articles' %}" class="view-more-btn">View More</a>
+          </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <div class="footer__topline" aria-hidden="true"></div>
+
+          <div class="footer__main-grid">
+            <div class="footer__col">
+              <div class="footer__label">Company</div>
+              <ul class="footer__list">
+                <li><a href="{% url 'about' %}">About</a></li>
+                <li><a href="{% url 'contact' %}">Contact</a></li>
+                <li><a href="{% url 'works' %}">Works</a></li>
+                <li><a href="{% url 'articles' %}">Articles</a></li>
+              </ul>
+            </div>
+
+            <div class="footer__col">
+              <div class="footer__label footer__label--strong">Rijmen &amp; Baskara</div>
+              <div class="footer__meta">
+                <a href="tel:+628119695661">(+62) 811 9695661</a><br />
+                <a href="mailto:rijmenbaskara@gmail.com">rijmenbaskara@gmail.com</a><br />
+                <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook">Facebook</a><br />
+                <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
+              </div>
+            </div>
+
+            <div class="footer__col footer__col--form">
+              <div class="footer__label footer__label--strong">SEND MESSAGE</div>
+              <form method="post" action="{% url 'contact' %}" class="contact-form">
+                {% csrf_token %}
+                <div class="form-group">
+                  <label for="email">Your Email</label>
+                  <input type="email" id="email" name="email" required placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                  <label for="message">Message</label>
+                  <textarea id="message" name="message" required rows="4" placeholder="Your message here..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Send Message</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="footer__bottom">
+            <div class="footer__fineprint">© 2022 Rijmen and Baskara All Rights Reserved</div>
+            <div class="footer__fineprint footer__fineprint--right">
+              Developed by Hazel (your name)<br />
+              Designed by Andi Aulia Halim
+            </div>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <script src="{% static 'js/scrollbar.js' %}"></script>
+  <script src="{% static 'js/theme-toggle.js' %}"></script>
+  <script src="{% static 'js/home.js' %}"></script>
+</body>
+</html>

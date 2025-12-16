@@ -1,0 +1,109 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About - Rijmen & Baskara</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'css/contact.css' %}">
+</head>
+
+<body>
+  <div class="page-frame">
+    <div class="page" role="document">
+      <!-- Custom visual scrollbar hugging the right side -->
+      <div class="scrollbar" aria-hidden="true">
+        <div class="scrollbar__thumb" id="scrollThumb"></div>
+      </div>
+
+      <!-- Scrollable interior -->
+      <div class="page-scroll" id="pageScroll">
+        <!-- Top navigation -->
+        <header class="topbar">
+          <div class="brand">
+            <a href="{% url 'home' %}" class="brand__link">R&amp;B</a>
+          </div>
+
+          <nav class="nav" aria-label="Primary">
+            <a class="nav__link" href="{% url 'works' %}">Works</a>
+            <a class="nav__link" href="{% url 'articles' %}">Article</a>
+            <a class="nav__link is-active" href="{% url 'about' %}">About</a>
+            <a class="nav__link" href="{% url 'contact' %}">Contact</a>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+              <span class="theme-icon">☀️</span>
+            </button>
+          </nav>
+        </header>
+
+        <!-- Main content -->
+        <main class="content">
+          <h1 class="hero-title">ABOUT</h1>
+          <p class="subtitle">About Rijmen & Baskara</p>
+          
+          <p style="margin-top: 40px; font-size: 1.2rem;">Coming Soon...</p>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <div class="footer__topline" aria-hidden="true"></div>
+
+          <div class="footer__main-grid">
+            <div class="footer__col">
+              <div class="footer__label">Company</div>
+              <ul class="footer__list">
+                <li><a href="{% url 'about' %}">About</a></li>
+                <li><a href="{% url 'contact' %}">Contact</a></li>
+                <li><a href="{% url 'works' %}">Works</a></li>
+                <li><a href="{% url 'articles' %}">Articles</a></li>
+              </ul>
+            </div>
+
+            <div class="footer__col">
+              <div class="footer__label footer__label--strong">Rijmen &amp; Baskara</div>
+              <div class="footer__meta">
+                <a href="tel:+628119695661">(+62) 811 9695661</a><br />
+                <a href="mailto:rijmenbaskara@gmail.com">rijmenbaskara@gmail.com</a><br />
+                <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook">Facebook</a><br />
+                <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
+              </div>
+            </div>
+
+            <div class="footer__col footer__col--form">
+              <div class="footer__label footer__label--strong">SEND MESSAGE</div>
+              <form method="post" action="{% url 'contact' %}" class="contact-form">
+                {% csrf_token %}
+                <div class="form-group">
+                  <label for="email">Your Email</label>
+                  <input type="email" id="email" name="email" required placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                  <label for="message">Message</label>
+                  <textarea id="message" name="message" required rows="4" placeholder="Your message here..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Send Message</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="footer__bottom">
+            <div class="footer__fineprint">© 2022 Rijmen and Baskara All Rights Reserved</div>
+            <div class="footer__fineprint footer__fineprint--right">
+              Developed by Hazel (your name)<br />
+              Designed by Andi Aulia Halim
+            </div>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <script src="{% static 'js/scrollbar.js' %}"></script>
+  <script src="{% static 'js/theme-toggle.js' %}"></script>
+</body>
+</html>

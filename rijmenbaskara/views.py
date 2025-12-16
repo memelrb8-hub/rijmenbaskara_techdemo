@@ -34,13 +34,13 @@ def contact(request):
     return render(request, 'contact.html')
 
 def home(request):
-    return render(request, 'contact.html')  # Using contact as home for now
+    return render(request, 'home.html')
 
 def works(request):
-    return HttpResponse('<h1>Works Page - Coming Soon</h1>')
+    return render(request, 'works.html')
 
 def articles(request):
-    return HttpResponse('<h1>Articles Page - Coming Soon</h1>')
+    return render(request, 'articles.html')
 
 def about(request):
-    return HttpResponse('<h1>About Page - Coming Soon</h1>')
+    return render(request, 'about.html')
