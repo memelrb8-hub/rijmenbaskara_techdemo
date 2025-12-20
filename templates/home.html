@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="referrer" content="origin" />
   <title>Rijmen & Baskara - Home</title>
 
   <!-- Google Fonts -->
@@ -32,6 +33,9 @@
               <a class="nav__link" href="{% url 'articles' %}">Article</a>
               <a class="nav__link" href="{% url 'about' %}">About</a>
               <a class="nav__link" href="{% url 'contact' %}">Contact</a>
+              <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                <span class="theme-icon">☀️</span>
+              </button>
             </nav>
           </div>
         </header>
@@ -56,13 +60,14 @@
                 <p><strong>RIJMEN &amp; BASKARA</strong> creates <em>Bespoke Models</em> for <em>Historical Preservation</em> and <em>Visual Display</em></p>
               </div>
 
-              <div class="video-placeholder" aria-label="Video placeholder">
-                <button class="play-button" aria-label="Play video">
-                  <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-                    <circle cx="30" cy="30" r="22" stroke="currentColor" stroke-width="1"/>
-                    <path d="M27 23L40 30L27 37V23Z" fill="currentColor"/>
-                  </svg>
-                </button>
+              <div class="video-container" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; margin: 2rem 0; border: 2px solid var(--rule);">
+                <video 
+                  style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;"
+                  controls
+                  preload="metadata">
+                  <source src="{% static 'images/YTDown.com_YouTube_Laufey-Promise-Official-Audio_Media_Yq6qkq_TWAM_001_1080p.mp4' %}" type="video/mp4">
+                  Your browser does not support the video tag.
+                </video>
               </div>
             </section>
 
@@ -72,28 +77,80 @@
 
               <div class="works-grid">
                 <div class="work-card">
-                  <div class="work-image"></div>
+                  <div class="work-image">
+                    <img src="{% static 'images/Orange-colored-cat-yawns-displaying-teeth.webp' %}" alt="British Spitfire" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
                   <h3 class="work-title">1/48 British<br />Spitfire Mk XIV</h3>
                 </div>
 
                 <div class="work-card">
-                  <div class="work-image"></div>
+                  <div class="work-image">
+                    <img src="{% static 'images/images.jpg' %}" alt="Tamiya M48A3 Patton" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
                   <h3 class="work-title">1/48 Tamiya<br />M48A3 Patton</h3>
                 </div>
 
                 <div class="work-card">
-                  <div class="work-image"></div>
+                  <div class="work-image">
+                    <img src="{% static 'images/images (1).jpg' %}" alt="McLaren M23" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
                   <h3 class="work-title">1/12 McLaren<br />M23</h3>
                 </div>
 
                 <div class="work-card">
-                  <div class="work-image"></div>
+                  <div class="work-image">
+                    <img src="{% static 'images/Earhart-3-scaled.jpg' %}" alt="Russian KV-2" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
                   <h3 class="work-title">1/35 Russian<br />KV-2</h3>
                 </div>
 
                 <div class="work-card">
-                  <div class="work-image"></div>
+                  <div class="work-image">
+                    <img src="{% static 'images/Orange-colored-cat-yawns-displaying-teeth.webp' %}" alt="USS NIMITZ" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
                   <h3 class="work-title">1/800 USS<br />NIMITZ</h3>
+                </div>
+
+                <div class="work-card">
+                  <div class="work-image">
+                    <img src="{% static 'images/images.jpg' %}" alt="F-16 Fighting Falcon" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
+                  <h3 class="work-title">1/72 F-16<br />Fighting Falcon</h3>
+                </div>
+
+                <div class="work-card">
+                  <div class="work-image">
+                    <img src="{% static 'images/images (1).jpg' %}" alt="Tiger I Tank" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
+                  <h3 class="work-title">1/35 German<br />Tiger I</h3>
+                </div>
+
+                <div class="work-card">
+                  <div class="work-image">
+                    <img src="{% static 'images/Earhart-3-scaled.jpg' %}" alt="P-51 Mustang" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
+                  <h3 class="work-title">1/48 P-51<br />Mustang</h3>
+                </div>
+
+                <div class="work-card">
+                  <div class="work-image">
+                    <img src="{% static 'images/Orange-colored-cat-yawns-displaying-teeth.webp' %}" alt="Bismarck Battleship" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
+                  <h3 class="work-title">1/350 Bismarck<br />Battleship</h3>
+                </div>
+
+                <div class="work-card">
+                  <div class="work-image">
+                    <img src="{% static 'images/images.jpg' %}" alt="Sherman Tank" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
+                  <h3 class="work-title">1/35 M4<br />Sherman</h3>
+                </div>
+
+                <div class="work-card">
+                  <div class="work-image">
+                    <img src="{% static 'images/images (1).jpg' %}" alt="Yamato Battleship" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
+                  <h3 class="work-title">1/700 IJN<br />Yamato</h3>
                 </div>
               </div>
             </section>
@@ -107,7 +164,9 @@
 
               <div class="article-list">
                 <article class="article-row">
-                  <div class="article-image" aria-hidden="true"></div>
+                  <div class="article-image" aria-hidden="true">
+                    <img src="{% static 'images/images.jpg' %}" alt="Hawker Tempest" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
                   <div>
                     <h3 class="article-title">The Definitive Eduard Hawker Tempest Mk.V Review</h3>
                     <p class="article-excerpt">
@@ -117,7 +176,9 @@
                 </article>
 
                 <article class="article-row">
-                  <div class="article-image" aria-hidden="true"></div>
+                  <div class="article-image" aria-hidden="true">
+                    <img src="{% static 'images/images (1).jpg' %}" alt="PT 579/588" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
                   <div>
                     <h3 class="article-title">Building the Revell PT 579/588</h3>
                     <p class="article-excerpt">
@@ -199,5 +260,8 @@
       </div>
     </div>
   </div>
+
+  <script src="{% static 'js/theme-toggle.js' %}"></script>
+  <script src="{% static 'js/home.js' %}"></script>
 </body>
 </html>

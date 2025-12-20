@@ -38,16 +38,19 @@
 
 .hero-description{
   margin: 0 0 18px;
-  max-width: 720px;
+  max-width: 100%;
 }
 
 .hero-description p{
   margin: 0;
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 14px;
-  line-height: 1.4;
+  font-size: 36px !important;
+  line-height: 1.2;
   color: var(--ink);
+  letter-spacing: -0.02em;
+  display: block;
+  width: 100%;
 }
 
 .hero-description em{
@@ -87,22 +90,48 @@
   font-family: var(--serif);
   font-weight: 400;
   font-style: italic; /* key aspects italic */
-  font-size: 16px;
+  font-size: 48px;
+  letter-spacing: -0.02em;
 }
 
 .works-grid{
-  display:grid;
-  grid-template-columns: repeat(5, minmax(160px, 1fr));
-  gap: 0; /* screenshot shows touching borders */
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0;
   border: 1px solid var(--rule);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+
+.works-grid::-webkit-scrollbar {
+  height: 8px;
+}
+
+.works-grid::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+.works-grid::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 4px;
+}
+
+.works-grid::-webkit-scrollbar-thumb:hover {
+  background: var(--ink);
 }
 
 .work-card{
-  display:flex;
-  flex-direction:column;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  max-width: 200px;
   min-height: 180px;
   background: #e9e9e9;
   border-right: 1px solid var(--rule);
+  flex-shrink: 0;
 }
 
 .work-card:last-child{

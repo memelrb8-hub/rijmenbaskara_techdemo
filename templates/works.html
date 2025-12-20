@@ -17,40 +17,39 @@
 <body>
   <div class="page-frame">
     <div class="page" role="document">
-      <!-- Custom visual scrollbar hugging the right side -->
-      <div class="scrollbar" aria-hidden="true">
-        <div class="scrollbar__thumb" id="scrollThumb"></div>
-      </div>
-
-      <!-- Scrollable interior -->
       <div class="page-scroll" id="pageScroll">
+
         <!-- Top navigation -->
         <header class="topbar">
-          <div class="brand">
-            <a href="{% url 'home' %}" class="brand__link">R&amp;B</a>
-          </div>
+          <div class="container topbar__inner">
+            <div class="brand">
+              <a href="{% url 'home' %}" class="brand__link">R&amp;B</a>
+            </div>
 
-          <nav class="nav" aria-label="Primary">
-            <a class="nav__link is-active" href="{% url 'works' %}">Works</a>
-            <a class="nav__link" href="{% url 'articles' %}">Article</a>
-            <a class="nav__link" href="{% url 'about' %}">About</a>
-            <a class="nav__link" href="{% url 'contact' %}">Contact</a>
-            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
-              <span class="theme-icon">☀️</span>
-            </button>
-          </nav>
+            <nav class="nav" aria-label="Primary">
+              <a class="nav__link is-active" href="{% url 'works' %}">Works</a>
+              <a class="nav__link" href="{% url 'articles' %}">Article</a>
+              <a class="nav__link" href="{% url 'about' %}">About</a>
+              <a class="nav__link" href="{% url 'contact' %}">Contact</a>
+              <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                <span class="theme-icon">☀️</span>
+              </button>
+            </nav>
+          </div>
         </header>
 
-        <!-- Main content -->
         <main class="content">
-          <h1 class="hero-title">WORKS</h1>
-          <p class="subtitle">Our Portfolio of Scale Models</p>
-          
-          <p style="margin-top: 40px; font-size: 1.2rem;">Coming Soon...</p>
-        </main>
+          <div class="container works">
 
-        <!-- Footer -->
-        <footer class="footer">
+            <section class="works-hero">
+              <h1 class="works-title">WORKS</h1>
+              <p class="works-subtitle">Our Portfolio of Scale Models</p>
+              
+              <p style="margin-top: 40px; font-size: 1.2rem;">Coming Soon...</p>
+            </section>
+
+            <!-- Footer -->
+            <footer class="footer">
           <div class="footer__topline" aria-hidden="true"></div>
 
           <div class="footer__main-grid">
@@ -99,11 +98,14 @@
             </div>
           </div>
         </footer>
+
+          </div>
+        </main>
+
       </div>
     </div>
   </div>
 
-  <script src="{% static 'js/scrollbar.js' %}"></script>
   <script src="{% static 'js/theme-toggle.js' %}"></script>
 </body>
 </html>

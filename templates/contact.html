@@ -32,6 +32,9 @@
               <a class="nav__link" href="{% url 'articles' %}">Article</a>
               <a class="nav__link" href="{% url 'about' %}">About</a>
               <a class="nav__link is-active" href="{% url 'contact' %}">Contact</a>
+              <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                <span class="theme-icon">☀️</span>
+              </button>
             </nav>
           </div>
         </header>
@@ -45,6 +48,14 @@
                 AND INFO
               </h1>
               <p class="contact-subtitle">For Commissions And General Inquiry</p>
+              
+              {% if messages %}
+                {% for message in messages %}
+                  <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                  </div>
+                {% endfor %}
+              {% endif %}
             </section>
 
             <section class="contact-block" aria-label="Contact details">
@@ -122,5 +133,7 @@
       </div>
     </div>
   </div>
+
+  <script src="{% static 'js/theme-toggle.js' %}"></script>
 </body>
 </html>

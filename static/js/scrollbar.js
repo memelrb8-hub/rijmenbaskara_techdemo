@@ -1,22 +1,22 @@
 (function () {
-  const scroller = document.getElementById("pageScroll");
   const thumb = document.getElementById("scrollThumb");
-  if (!scroller || !thumb) return;
+  if (!thumb) return;
 
   function updateThumb() {
-    const scrollHeight = scroller.scrollHeight;
-    const clientHeight = scroller.clientHeight;
-    const scrollTop = scroller.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight;
+    const clientHeight = window.innerHeight;
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
     const track = thumb.parentElement;
     const trackHeight = track.clientHeight;
 
-    // If nothing to scroll, thumb fills track
+    // If nothing to scroll, hide thumb
     if (scrollHeight <= clientHeight) {
-      thumb.style.height = trackHeight + "px";
-      thumb.style.transform = "translateY(0px)";
+      thumb.style.opacity = "0";
       return;
     }
+    
+    thumb.style.opacity = "0.95";
 
     // Thumb size proportional to visible area
     const ratio = clientHeight / scrollHeight;
@@ -33,6 +33,6 @@
   }
 
   updateThumb();
-  scroller.addEventListener("scroll", updateThumb, { passive: true });
+  window.addEventListener("scroll", updateThumb, { passive: true });
   window.addEventListener("resize", updateThumb);
 })();

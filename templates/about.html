@@ -32,6 +32,9 @@
               <a class="nav__link" href="{% url 'articles' %}">Article</a>
               <a class="nav__link is-active" href="{% url 'about' %}">About</a>
               <a class="nav__link" href="{% url 'contact' %}">Contact</a>
+              <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                <span class="theme-icon">☀️</span>
+              </button>
             </nav>
           </div>
         </header>
@@ -122,5 +125,7 @@
       </div>
     </div>
   </div>
+
+  <script src="{% static 'js/theme-toggle.js' %}"></script>
 </body>
 </html>

@@ -9,6 +9,8 @@
   --ink: #0b0b0b;
   --muted: rgba(11,11,11,.70);
   --rule: rgba(11,11,11,.22);
+  --input-bg: #ffffff;
+  --input-border: rgba(11,11,11,.22);
 
   --serif: "DM Serif Display", serif;
   --sans: "DM Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -27,6 +29,16 @@
   --content-max: 1280px;
 }
 
+/* Dark Mode */
+[data-theme="dark"] {
+  --bg: #414042;
+  --ink: #f0f0f0;
+  --muted: rgba(240,240,240,.70);
+  --rule: rgba(240,240,240,.22);
+  --input-bg: #333333;
+  --input-border: rgba(240,240,240,.22);
+}
+
 /* Reset */
 *{ box-sizing: border-box; }
 html, body{ height: 100%; }
@@ -35,6 +47,7 @@ body{
   background: var(--bg);
   color: var(--ink);
   font-family: var(--sans);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Full-page wrappers (keep your HTML structure, but make it full page) */
@@ -51,6 +64,7 @@ body{
   border-radius: 0;
   overflow: visible;
   box-shadow: none;
+  transition: background-color 0.3s ease;
 }
 
 /* Optional subtle “editor” margin lines on the left (like your earlier mock) */
@@ -83,11 +97,6 @@ body{
   padding: var(--page-pad-top) var(--page-pad-x) var(--page-pad-bottom);
 }
 
-/* Hide your custom scrollbar (since we’re not using an inner scroll box anymore) */
-.scrollbar{
-  display:none;
-}
-
 /* Centering container (content still feels editorial, but page fills viewport) */
 .container{
   width: 100%;
@@ -102,6 +111,7 @@ body{
   z-index: 10;
   background: var(--bg);
   padding: 10px 0 16px;
+  transition: background-color 0.3s ease;
 }
 
 .topbar__inner{
@@ -119,6 +129,7 @@ body{
   line-height: 1;
   text-decoration:none;
   color: var(--ink);
+  transition: color 0.3s ease;
 }
 
 .nav{
@@ -134,6 +145,7 @@ body{
   font-size: 14px;
   color: var(--ink);
   text-decoration:none;
+  transition: color 0.3s ease;
 }
 
 .nav__link:hover{
@@ -144,6 +156,40 @@ body{
 .nav__link.is-active{
   text-decoration: underline;
   text-underline-offset: 6px;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  line-height: 1;
+}
+
+.theme-toggle:hover {
+  background: var(--rule);
+  transform: scale(1.1);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.theme-icon {
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.theme-toggle:hover .theme-icon {
+  transform: rotate(20deg);
 }
 
 /* Enforce Brandon typography utilities */
@@ -198,6 +244,7 @@ main.content {
   font-size: 12px;
   color: var(--muted);
   margin-bottom: 10px;
+  transition: color 0.3s ease;
 }
 
 .footer__list{
@@ -212,6 +259,7 @@ main.content {
   font-family: var(--sans);
   font-weight: 500;
   font-size: 12px;
+  transition: color 0.3s ease;
 }
 .footer__list a:hover,
 .footer__meta a:hover{
@@ -235,6 +283,44 @@ main.content {
   font-size: 10px;
   color: rgba(11,11,11,.7);
   line-height: 1.4;
+  transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .footer__fineprint{
+  color: rgba(240,240,240,.7);
+}
+
+/* Alert Messages */
+.alert {
+  padding: 12px 16px;
+  margin: 20px 0;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+[data-theme="dark"] .alert-success {
+  background: #1e4620;
+  color: #d4edda;
+  border-color: #2d5a2e;
+}
+
+[data-theme="dark"] .alert-error {
+  background: #4a1f20;
+  color: #f8d7da;
+  border-color: #5a2a2b;
 }
 
 .footer__fineprint--right{
@@ -267,17 +353,20 @@ main.content {
 }
 .contact-form input,
 .contact-form textarea{
-  border: 1px solid var(--rule);
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--ink);
   border-radius: 0;
   padding: 10px 12px;
   font-family: var(--sans);
   font-weight: 500;
   font-size: 14px;
   outline:none;
+  transition: border-color 0.2s ease, background-color 0.3s ease, color 0.3s ease;
 }
 .contact-form input:focus,
 .contact-form textarea:focus{
-  border-color: rgba(0,0,0,.55);
+  border-color: var(--ink);
 }
 
 .submit-btn{
@@ -287,10 +376,13 @@ main.content {
   padding: 0;
   cursor: pointer;
   text-decoration: none;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  transition: color 0.3s ease;
 }
 .submit-btn:hover{
   text-decoration: underline;
-  text-underline-offset: 10px;
+  text-underline-offset: 4px;
 }
 
 /* Responsive */
