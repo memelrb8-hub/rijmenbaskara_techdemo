@@ -30,7 +30,10 @@
             <nav class="nav" aria-label="Primary">
               <a class="nav__link" href="{% url 'works' %}">Works</a>
               <a class="nav__link is-active" href="{% url 'articles' %}">Article</a>
-              <a class="nav__link" href="{% url 'add_article' %}">Add</a>
+              {% if request.user.is_staff %}
+                <a class="nav__link" href="{% url 'manage_articles' %}">Manage</a>
+                <a class="nav__link" href="{% url 'add_article' %}">Add</a>
+              {% endif %}
               <a class="nav__link" href="{% url 'about' %}">About</a>
               <a class="nav__link" href="{% url 'contact' %}">Contact</a>
               <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
@@ -46,17 +49,48 @@
             <section class="articles-hero">
               <h1 class="articles-title">ARTICLES</h1>
               <p class="articles-subtitle">Featured Articles & Reviews</p>
+            </section>
 
-              <div class="articles-cta">
-                <div>
-                  <p class="eyebrow">NEW</p>
-                  <h2>Publish-ready drafting</h2>
-                  <p>Start a new story with a Medium-inspired editor, cover dropzone, and rich text controls.</p>
-                </div>
-                <a class="cta-btn" href="{% url 'add_article' %}">Write article</a>
+            <section class="filter-bar">
+              <div class="filter-bar__label">Filter by tag</div>
+              <div class="filter-bar__chips">
+                <a class="filter-chip {% if not active_tag %}is-active{% endif %}" href="{% url 'articles' %}">All</a>
+                {% for tag in tag_choices %}
+                  <a class="filter-chip {% if active_tag == tag %}is-active{% endif %}" href="{% url 'articles' %}?tag={{ tag }}">{{ tag }}</a>
+                {% endfor %}
               </div>
+              {% if active_tag %}
+                <div class="filter-bar__note">Showing articles tagged "{{ active_tag }}".</div>
+              {% endif %}
+            </section>
 
-              <p class="coming-soon">More curated reads coming soon.</p>
+            <section class="timeline">
+              <div class="timeline__years">
+                {% if year_list %}
+                  {% for year, _ in year_list %}
+                    <div class="timeline__year {% if forloop.first %}is-current{% endif %}">{{ year }}</div>
+                  {% endfor %}
+                {% else %}
+                  <div class="timeline__year is-muted">—</div>
+                {% endif %}
+              </div>
+              <div class="timeline__list">
+                {% if year_list %}
+                  {% for year, items in year_list %}
+                    {% for item in items %}
+                      <div class="timeline__row">
+                        <span class="timeline__year-label">{{ year }}</span>
+                        <a class="timeline__title" href="{% url 'article_detail' item.id|default:item.slug %}">{{ item.title }}</a>
+                        {% if request.user.is_staff %}
+                          <a class="timeline__edit" href="{% url 'edit_article' item.id|default:item.slug %}">Edit</a>
+                        {% endif %}
+                      </div>
+                    {% endfor %}
+                  {% endfor %}
+                {% else %}
+                  <p class="coming-soon">No saved articles yet.</p>
+                {% endif %}
+              </div>
             </section>
 
             <!-- Footer -->

@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Works - Rijmen & Baskara</title>
+  <title>Manage Articles - Rijmen & Baskara</title>
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,6 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/articles.css' %}">
 </head>
 
 <body>
@@ -27,29 +28,70 @@
             </div>
 
             <nav class="nav" aria-label="Primary">
-              <a class="nav__link is-active" href="{% url 'works' %}">Works</a>
+              <a class="nav__link" href="{% url 'works' %}">Works</a>
               <a class="nav__link" href="{% url 'articles' %}">Article</a>
               {% if request.user.is_staff %}
-                <a class="nav__link" href="{% url 'manage_articles' %}">Manage</a>
-                <a class="nav__link" href="{% url 'add_article' %}">Add</a>
+                <a class="nav__link is-active" href="{% url 'manage_articles' %}">Manage</a>
               {% endif %}
               <a class="nav__link" href="{% url 'about' %}">About</a>
               <a class="nav__link" href="{% url 'contact' %}">Contact</a>
               <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
-                <span class="theme-icon">☀️</span>
+                <span class="theme-icon">??</span>
               </button>
             </nav>
           </div>
         </header>
 
         <main class="content">
-          <div class="container works">
+          <div class="container articles">
 
-            <section class="works-hero">
-              <h1 class="works-title">WORKS</h1>
-              <p class="works-subtitle">Our Portfolio of Scale Models</p>
-              
-              <p style="margin-top: 40px; font-size: 1.2rem;">Coming Soon...</p>
+            <section class="articles-hero">
+              <h1 class="articles-title">Manage Articles</h1>
+              <p class="articles-subtitle">Edit or start a new draft. Stored locally as JSON + cover.</p>
+              <div class="articles-cta">
+                <div>
+                  <p class="eyebrow">Admin only</p>
+                  <h2>Create a new draft</h2>
+                  <p>Uses the same Medium-like composer with cover + tags.</p>
+                </div>
+                <a class="cta-btn" href="{% url 'add_article' %}">New draft</a>
+              </div>
+            </section>
+
+            <section class="saved-list">
+              <div class="saved-list__header">
+                <h2>Your saved articles</h2>
+              </div>
+
+              {% if articles %}
+                <div class="saved-list__grid">
+                  {% for item in articles %}
+                    <article class="saved-card">
+                      <div class="saved-card__meta">
+                        <span class="saved-card__date">{{ item.created_at }}</span>
+                        <span class="saved-card__file">{{ item.file|default:item.id }}</span>
+                      </div>
+                      <h3 class="saved-card__title">{{ item.title }}</h3>
+                      {% if item.subtitle %}
+                        <p class="saved-card__subtitle">{{ item.subtitle }}</p>
+                      {% endif %}
+                      <p class="saved-card__excerpt">{{ item.body_html|striptags|truncatechars:160 }}</p>
+                      {% if item.tags %}
+                        <div class="tag-row">
+                          {% for tag in item.tags %}
+                            <span class="tag-chip">{{ tag }}</span>
+                          {% endfor %}
+                        </div>
+                      {% endif %}
+                      <div class="saved-card__actions">
+                        <a href="{% url 'edit_article' item.id %}" class="cta-btn cta-btn--ghost">Edit</a>
+                      </div>
+                    </article>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p class="coming-soon">No saved articles yet. Create one to populate this list.</p>
+              {% endif %}
             </section>
 
             <!-- Footer -->
@@ -95,7 +137,7 @@
           </div>
 
           <div class="footer__bottom">
-            <div class="footer__fineprint">© 2022 Rijmen and Baskara All Rights Reserved</div>
+            <div class="footer__fineprint">c 2022 Rijmen and Baskara All Rights Reserved</div>
             <div class="footer__fineprint footer__fineprint--right">
               Developed by Hazel (your name)<br />
               Designed by Andi Aulia Halim

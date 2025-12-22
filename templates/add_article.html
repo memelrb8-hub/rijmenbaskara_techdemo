@@ -30,7 +30,10 @@
             <nav class="nav" aria-label="Primary">
               <a class="nav__link" href="{% url 'works' %}">Works</a>
               <a class="nav__link" href="{% url 'articles' %}">Article</a>
-              <a class="nav__link is-active" href="{% url 'add_article' %}">Add</a>
+              {% if request.user.is_staff %}
+                <a class="nav__link" href="{% url 'manage_articles' %}">Manage</a>
+                <a class="nav__link is-active" href="{% url 'add_article' %}">Add</a>
+              {% endif %}
               <a class="nav__link" href="{% url 'about' %}">About</a>
               <a class="nav__link" href="{% url 'contact' %}">Contact</a>
               <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
@@ -45,15 +48,16 @@
 
             <section class="add-article__hero">
               <p class="eyebrow">EDITOR</p>
-              <h1 class="add-article__title">Write a new article</h1>
-              <p class="add-article__lede">
-                Medium-inspired flow with one visual slot up top and a clean, distraction-free text canvas.
-              </p>
-              <div class="badge-row" aria-hidden="true">
-                <span class="pill">Drag images</span>
-                <span class="pill">Rich text</span>
-                <span class="pill">Keyboard-first</span>
-              </div>
+              <h1 class="add-article__title">
+                {% if is_edit %}Edit article{% else %}Write a new article{% endif %}
+              </h1>
+              <p class="add-article__lede">Useful tips to ship quickly:</p>
+              <ul class="tips">
+                <li>One cover slot up top — drop a landscape photo or skip it.</li>
+                <li>Large title + airy leading; quick toolbar for headings, lists, quotes.</li>
+                <li>Keyboard-first: Ctrl/Cmd + B/I/U or start lines with #, ##, or &gt; then space.</li>
+                <li>Save writes a JSON file locally (plus cover if uploaded) so you can manage it like documents.</li>
+              </ul>
             </section>
 
             {% if messages %}
@@ -66,6 +70,9 @@
 
             <form method="post" enctype="multipart/form-data" class="editor-shell" id="articleForm">
               {% csrf_token %}
+              {% if article_id %}
+                <input type="hidden" name="article_id" value="{{ article_id }}">
+              {% endif %}
 
               <div class="cover-field">
                 <div class="cover-label">
@@ -84,6 +91,9 @@
                     <button type="button" class="pill pill--ghost" id="removeCover">Remove</button>
                   </div>
                 </div>
+                {% if existing_cover %}
+                  <p class="current-cover">Stored cover: {{ existing_cover }}</p>
+                {% endif %}
               </div>
 
               <div class="field-stack">
@@ -105,6 +115,18 @@
                   placeholder="Add a short dek or summary (optional)"
                   value="{{ draft_subtitle|default_if_none:'' }}"
                   autocomplete="off">
+
+                <div class="tags-chooser">
+                  <div class="tags-chooser__label">Tags</div>
+                  <div class="tags-chooser__grid">
+                    {% for tag in tag_choices %}
+                      <label class="tag-toggle">
+                        <input type="checkbox" name="tags" value="{{ tag }}" {% if draft_tags and tag in draft_tags %}checked{% endif %}>
+                        <span>{{ tag }}</span>
+                      </label>
+                    {% endfor %}
+                  </div>
+                </div>
               </div>
 
               <div class="toolbar" role="toolbar" aria-label="Formatting">
@@ -131,7 +153,7 @@
               <textarea id="bodyInput" name="body_html" hidden>{{ draft_body|default_if_none:'' }}</textarea>
 
               <div class="actions">
-                <button type="submit" class="primary-btn">Save draft</button>
+                <button type="submit" class="primary-btn">{% if is_edit %}Save changes{% else %}Save draft{% endif %}</button>
                 <a class="ghost-link" href="{% url 'articles' %}">Discard</a>
                 <span class="hint">No publishing pipeline yet — we store this as a draft for now.</span>
               </div>
@@ -139,16 +161,16 @@
 
             <section class="helper">
               <div>
-                <h2>Medium-like rhythm</h2>
-                <p>Large title, airy leading, quick-format toolbar, and a single visual slot keep things focused.</p>
+                <h2>Saving</h2>
+                <p>Each submit writes a JSON file into <code>articles_store/</code> with the cover beside it, so you can version or move them around.</p>
               </div>
               <div>
-                <h2>Keyboard first</h2>
-                <p>Use <kbd>Ctrl/Cmd + B</kbd>, <kbd>I</kbd>, <kbd>U</kbd> or start lines with <code>#</code>, <code>##</code>, or <code>&gt;</code> then press space.</p>
+                <h2>Tags</h2>
+                <p>Comma-separated tags are stored with every article and listed in the articles view to help you filter later.</p>
               </div>
               <div>
-                <h2>Swap your cover anytime</h2>
-                <p>Drop a new image or remove it — the layout adapts without jarring jumps.</p>
+                <h2>Cleanup</h2>
+                <p>Replace or remove the cover anytime; swap text freely—files are independent so nothing is overwritten unless you intentionally reuse a title + timestamp.</p>
               </div>
             </section>
 

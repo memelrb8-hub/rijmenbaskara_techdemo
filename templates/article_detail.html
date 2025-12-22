@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Contact</title>
+  <title>{{ article.title }} - Rijmen & Baskara</title>
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
-  <link rel="stylesheet" href="{% static 'css/contact-page.css' %}">
+  <link rel="stylesheet" href="{% static 'css/articles.css' %}">
 </head>
 
 <body>
@@ -29,56 +29,53 @@
 
             <nav class="nav" aria-label="Primary">
               <a class="nav__link" href="{% url 'works' %}">Works</a>
-              <a class="nav__link" href="{% url 'articles' %}">Article</a>
+              <a class="nav__link is-active" href="{% url 'articles' %}">Article</a>
               {% if request.user.is_staff %}
                 <a class="nav__link" href="{% url 'manage_articles' %}">Manage</a>
                 <a class="nav__link" href="{% url 'add_article' %}">Add</a>
               {% endif %}
               <a class="nav__link" href="{% url 'about' %}">About</a>
-              <a class="nav__link is-active" href="{% url 'contact' %}">Contact</a>
+              <a class="nav__link" href="{% url 'contact' %}">Contact</a>
               <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
-                <span class="theme-icon">☀️</span>
+                <span class="theme-icon">??</span>
               </button>
             </nav>
           </div>
         </header>
 
         <main class="content">
-          <div class="container contact">
-
-            <section class="contact-hero">
-              <h1 class="contact-title">
-                CONTACT<br />
-                AND INFO
-              </h1>
-              <p class="contact-subtitle">For Commissions And General Inquiry</p>
-              
-              {% if messages %}
-                {% for message in messages %}
-                  <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                  </div>
-                {% endfor %}
+          <div class="container article-detail">
+            <article>
+              <p class="eyebrow">ARTICLE</p>
+              <h1 class="article-detail__title">{{ article.title }}</h1>
+              {% if article.subtitle %}
+                <p class="article-detail__subtitle">{{ article.subtitle }}</p>
               {% endif %}
-            </section>
 
-            <section class="contact-block" aria-label="Contact details">
+              {% if article.tags %}
+                <div class="tag-row" style="margin: 10px 0 16px;">
+                  {% for tag in article.tags %}
+                    <span class="tag-chip">{{ tag }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
 
-              <div class="contact-item">
-                <h2 class="contact-item__title">PHONE</h2>
-                <a class="contact-item__value" href="tel:+628119695661">(+62) 811 9695661</a>
+              {% if article.cover %}
+                <div class="article-detail__cover">
+                  <img src="{{ article.cover }}" alt="{{ article.title }} cover">
+                </div>
+              {% endif %}
+
+              <div class="article-detail__body">
+                {{ article.body_html|safe }}
               </div>
 
-              <div class="contact-item">
-                <h2 class="contact-item__title">MAIL</h2>
-                <a class="contact-item__value" href="mailto:info@rijmenbaskara.com">Info@rijmenbaskara.com</a>
-              </div>
-
-              <div class="contact-item">
-                <h2 class="contact-item__title">SOCIALS</h2>
-                <p class="contact-item__value">Available At Instagram &amp; Facebook</p>
-              </div>
-            </section>
+              {% if request.user.is_staff %}
+                <div class="article-detail__admin">
+                  <a class="cta-btn" href="{% url 'edit_article' article.id|default:article.slug %}">Edit article</a>
+                </div>
+              {% endif %}
+            </article>
 
             <!-- Footer -->
             <footer class="footer">
@@ -123,7 +120,7 @@
               </div>
 
               <div class="footer__bottom">
-                <div class="footer__fineprint">© 2022 Rijmen and Baskara All Rights Reserved</div>
+                <div class="footer__fineprint">c 2022 Rijmen and Baskara All Rights Reserved</div>
                 <div class="footer__fineprint footer__fineprint--right">
                   Developed by Hazel (your name)<br />
                   Designed by Andi Aulia Halim

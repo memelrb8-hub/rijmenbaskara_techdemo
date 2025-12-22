@@ -117,6 +117,10 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
+# Media (serves article covers in development)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'articles_store'
+
 # Email Configuration
 # For development, using console backend (prints emails to console)
 # For production, configure with actual SMTP settings

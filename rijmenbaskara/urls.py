@@ -16,6 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
@@ -25,5 +27,11 @@ urlpatterns = [
     path('works/', views.works, name='works'),
     path('articles/', views.articles, name='articles'),
     path('articles/new/', views.add_article, name='add_article'),
+    path('articles/manage/', views.manage_articles, name='manage_articles'),
+    path('articles/<slug:article_id>/edit/', views.edit_article, name='edit_article'),
+    path('articles/<slug:article_id>/', views.article_detail, name='article_detail'),
     path('about/', views.about, name='about'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
