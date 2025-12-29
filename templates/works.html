@@ -13,9 +13,8 @@
 
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/works.css' %}">
-  <link rel="stylesheet" href="{% static 'css/gallery-viewer.css' %}">
-  <script defer src="{% static 'js/gallery-viewer.js' %}"></script>
-  <script defer src="{% static 'js/works.js' %}"></script>
+  <script defer src="{% static 'js/lightbox.js' %}"></script>
+  <script defer src="{% static 'js/carousel.js' %}"></script>
 </head>
 
 <body>
@@ -49,55 +48,80 @@
         <main class="content">
           <div class="container works">
 
-                        <section class="works-hero">
+            <section class="works-hero">
               <h1 class="works-title">Gallery</h1>
-              <p class="works-subtitle">SenseiWagnibiart gallery — filter by genre or quality.</p>
+              <p class="works-subtitle">Rijmen & Baskara gallery - browse our projects.</p>
+              {% if is_admin %}
+                <a class="works-add-btn" href="{% url 'add_project' %}">+ Add New Project</a>
+              {% endif %}
             </section>
 
-            <section class="works-gallery">
-              <div class="works-controls">
-                <div class="controls-right">
-                  <form method="get" class="works-search">
-                    <input type="text" name="q" value="{{ works_query }}" placeholder="Search works..." aria-label="Search works">
-                    <button type="submit">Search</button>
-                  </form>
-                  <div class="works-tags" id="worksTags">
-                    <button type="button" class="tag-chip is-active" data-filter="all">All</button>
-                    {% for tag in works_tags %}
-                      <button type="button" class="tag-chip" data-filter="{{ tag }}">{{ tag }}</button>
-                    {% endfor %}
-                  </div>
-                  {% if request.user.is_staff %}
-                    <form method="post" enctype="multipart/form-data" id="workUploadForm">
+            <!-- Gallery Grid -->
+            <section class="works-gallery-grid">
+              
+              {% for project in projects %}
+              <div class="project-section">
+                <div class="project-header">
+                  <h2 class="project-title">{{ project.title }}</h2>
+                  {% if is_admin %}
+                  <div class="project-actions">
+                    <a href="{% url 'edit_project' project.id %}" class="btn-edit">Edit</a>
+                    <form method="post" action="{% url 'delete_project' project.id %}" style="display:inline;" onsubmit="return confirm('Delete this project?');">
                       {% csrf_token %}
-                      <label class="upload-label">
-                        <input type="file" id="workUpload" name="work_image" accept="image/*" hidden>
-                        <span>Add picture</span>
-                      </label>
+                      <button type="submit" class="btn-delete">Delete</button>
                     </form>
+                  </div>
                   {% endif %}
                 </div>
-              </div>
-
-              {% get_static_prefix as static_root %}
-              <div class="works-masonry" id="worksGrid">
-                {% for item in works_items %}
-                  <figure
-                    class="work-item"
-                    id="{{ item.slug }}"
-                    data-tags="{{ item.tags|join:',' }}"
-                    data-images="{% for img in item.images %}{{ static_root }}{{ img }}{% if not forloop.last %}|{% endif %}{% endfor %}"
-                    data-title="{{ item.title }}">
-                    <div class="work-img">
-                      <img src="{{ static_root }}{{ item.thumb }}" alt="{{ item.title }}">
+                {% if project.description %}
+                <p class="project-description">{{ project.description }}</p>
+                {% endif %}
+                <div class="project-carousel" data-carousel="project-{{ project.id }}">
+                  <div class="carousel-container">
+                    <button class="carousel-btn carousel-prev" aria-label="Previous image">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                      </svg>
+                    </button>
+                    <div class="carousel-track">
+                      {% for image in project.images %}
+                      <div class="carousel-slide {% if forloop.first %}active{% endif %}" data-lightbox="project-{{ project.id }}" data-image="{% static 'images/' %}{{ image }}">
+                        <img src="{% static 'images/' %}{{ image }}" alt="{{ project.title }}" loading="lazy">
+                      </div>
+                      {% endfor %}
                     </div>
-                    <figcaption>{{ item.title }}</figcaption>
-                  </figure>
-                {% empty %}
-                  <p class="coming-soon">No items yet.</p>
-                {% endfor %}
+                    <button class="carousel-btn carousel-next" aria-label="Next image">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="carousel-pagination">
+                    {% for image in project.images %}
+                    <button class="pagination-thumb {% if forloop.first %}active{% endif %}" aria-label="Go to image {{ forloop.counter }}">
+                      <img src="{% static 'images/' %}{{ image }}" alt="Thumbnail {{ forloop.counter }}">
+                    </button>
+                    {% endfor %}
+                  </div>
+                </div>
               </div>
+              {% empty %}
+              <div class="no-projects">
+                <p>No projects yet. {% if is_admin %}<a href="{% url 'add_project' %}">Add your first project!</a>{% endif %}</p>
+              </div>
+              {% endfor %}
+
             </section>
+
+            <!-- Lightbox Modal -->
+            <div id="lightbox" class="lightbox">
+              <button class="lightbox-close" aria-label="Close">&times;</button>
+              <button class="lightbox-prev" aria-label="Previous">‹</button>
+              <button class="lightbox-next" aria-label="Next">›</button>
+              <div class="lightbox-content">
+                <img src="" alt="" id="lightbox-image">
+              </div>
+            </div>
 
             <!-- Footer -->
             <footer class="footer">

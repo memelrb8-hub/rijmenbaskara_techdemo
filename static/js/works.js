@@ -1,120 +1,71 @@
-// Simple horizontal slider + client-side add image (non-persistent)
-(function(){
-  const grid = document.getElementById('worksGrid');
-  const upload = document.getElementById('workUpload');
-  const modal = document.createElement('div');
-  modal.className = 'work-modal';
-  modal.innerHTML = `
-    <div class="work-modal__backdrop"></div>
-    <div class="work-modal__content">
-      <button class="work-modal__close" aria-label="Close">×</button>
-      <img alt="Work preview">
-      <div class="work-modal__caption"></div>
-    </div>
-  `;
-  document.body.appendChild(modal);
+// Works page: single inline gallery that fetches by galleryId and enforces per-instance caps.
+(function () {
+  const mountEl = document.getElementById('worksInlineGallery');
+  if (!mountEl || typeof GalleryViewer !== 'function') return;
 
-  const modalImg = modal.querySelector('img');
-  const modalCaption = modal.querySelector('.work-modal__caption');
-  const closeBtn = modal.querySelector('.work-modal__close');
-  const backdrop = modal.querySelector('.work-modal__backdrop');
-  const workItems = document.querySelectorAll('.work-item');
+  const galleryId = mountEl.dataset.galleryId || 'default';
+  const addUrl = mountEl.dataset.addUrl || `/works/${galleryId}/add/`;
+  const userRole = mountEl.dataset.userRole || 'viewer';
+  const apiBase = `/api/galleries/${galleryId}/items/`;
+  const selectId = mountEl.dataset.selectId || '';
+  let viewer = null;
 
-  // Slider controls
-  document.querySelectorAll('.slider-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (!grid) return;
-      const dir = btn.dataset.dir === 'next' ? 1 : -1;
-      const scrollAmount = grid.clientWidth * 0.9;
-      grid.scrollBy({ left: dir * scrollAmount, behavior: 'smooth' });
-    });
-  });
-
-  // Drag to scroll
-  if (grid) {
-    grid.addEventListener('click', (e) => {
-      const fig = e.target.closest('.work-item');
-      if (!fig) return;
-      const img = fig.querySelector('img');
-      const caption = fig.querySelector('figcaption');
-      if (img && modalImg && modalCaption) {
-        modalImg.src = img.src;
-        modalImg.alt = img.alt || '';
-        modalCaption.textContent = caption ? caption.textContent : '';
-        modal.classList.add('is-open');
-        document.body.style.overflow = 'hidden';
-      }
-    });
-
-    let isDown = false;
-    let startX = 0;
-    let scrollLeft = 0;
-
-    grid.addEventListener('mousedown', (e) => {
-      isDown = true;
-      startX = e.pageX - grid.offsetLeft;
-      scrollLeft = grid.scrollLeft;
-      grid.classList.add('is-grabbing');
-    });
-    grid.addEventListener('mouseleave', () => { isDown = false; grid.classList.remove('is-grabbing'); });
-    grid.addEventListener('mouseup', () => { isDown = false; grid.classList.remove('is-grabbing'); });
-    grid.addEventListener('mousemove', (e) => {
-      if (!isDown) return;
-      e.preventDefault();
-      const x = e.pageX - grid.offsetLeft;
-      const walk = (x - startX) * 1.4;
-      grid.scrollLeft = scrollLeft - walk;
-    });
-
-    // Touch swipe
-    grid.addEventListener('touchstart', (e) => {
-      isDown = true;
-      startX = e.touches[0].pageX - grid.offsetLeft;
-      scrollLeft = grid.scrollLeft;
-    });
-    grid.addEventListener('touchmove', (e) => {
-      if (!isDown) return;
-      const x = e.touches[0].pageX - grid.offsetLeft;
-      const walk = (x - startX) * 1.2;
-      grid.scrollLeft = scrollLeft - walk;
-    });
-    grid.addEventListener('touchend', () => { isDown = false; });
+  function getCSRFToken() {
+    const match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? match[1] : '';
   }
 
-  // Admin upload -> submit form (server saves to static)
-  if (upload) {
-    upload.addEventListener('change', () => {
-      const form = document.getElementById('workUploadForm');
-      if (form && upload.files.length) form.submit();
+  async function fetchItems() {
+    const res = await fetch(apiBase, { headers: { Accept: 'application/json' } });
+    if (!res.ok) throw new Error('Failed to load gallery items');
+    return res.json();
+  }
+
+  async function deleteItem(itemId) {
+    if (userRole !== 'admin') return;
+    const confirmDelete = window.confirm('Remove this picture?');
+    if (!confirmDelete) return;
+    const res = await fetch(`${apiBase}${encodeURIComponent(itemId)}/`, {
+      method: 'DELETE',
+      headers: { 'X-CSRFToken': getCSRFToken() },
     });
+    if (!res.ok) {
+      alert('Unable to delete. Please try again.');
+      return;
+    }
+    await loadAndRender();
   }
 
-  // Cascade-in reveal (bottom-to-top feel via translateY)
-  if (workItems.length) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const el = entry.target;
-          const idx = Number(el.dataset.index || 0);
-          el.style.setProperty('--cascade-delay', `${idx * 80}ms`);
-          el.classList.add('is-visible');
-          observer.unobserve(el);
-        }
-      });
-    }, { threshold: 0.2 });
-
-    workItems.forEach((el, idx) => {
-      el.dataset.index = idx;
-      observer.observe(el);
+  function initViewer(items, limit) {
+    if (viewer) {
+      viewer.setItems(items, limit);
+      if (selectId) viewer.goToId(selectId);
+      return;
+    }
+    viewer = new GalleryViewer({
+      mountEl,
+      galleryId,
+      items,
+      limit,
+      currentUserRole: userRole,
+      enableFilters: true,
+      enableSearch: true,
+      onAddItem: () => window.location.href = addUrl,
+      onDeleteItem: (itemId) => deleteItem(itemId),
     });
+    if (selectId) viewer.goToId(selectId);
   }
 
-  function closeModal(){
-    modal.classList.remove('is-open');
-    document.body.style.overflow = '';
+  async function loadAndRender() {
+    try {
+      const data = await fetchItems();
+      const items = Array.isArray(data.items) ? data.items : [];
+      const limit = data.limit;
+      initViewer(items, limit);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
-  [closeBtn, backdrop].forEach(el => {
-    if (el) el.addEventListener('click', closeModal);
-  });
+  loadAndRender();
 })();

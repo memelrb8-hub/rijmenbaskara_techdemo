@@ -1,8 +1,11 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, JsonResponse
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
+from django.urls import reverse
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from pathlib import Path
 import json
 import re
@@ -45,6 +48,57 @@ def _load_article(article_id: str):
     return data
 
 
+def _load_projects():
+    """Load all projects from projects_store directory"""
+    projects_file = PROJECTS_DIR / "seed_projects.json"
+    if projects_file.exists():
+        try:
+            data = json.loads(projects_file.read_text(encoding="utf-8"))
+            return sorted(data, key=lambda x: x.get("created_at", ""), reverse=True)
+        except Exception:
+            pass
+    return []
+
+
+def _load_project(project_id: str):
+    """Load a single project by ID"""
+    projects = _load_projects()
+    for project in projects:
+        if project.get("id") == project_id:
+            return project
+    raise Http404("Project not found")
+
+
+def _save_projects(projects):
+    """Save projects list to JSON file"""
+    projects_file = PROJECTS_DIR / "seed_projects.json"
+    projects_file.write_text(json.dumps(projects, indent=2), encoding="utf-8")
+
+
+def _save_project_image(uploaded_file):
+    """Save an uploaded image to static/images and return the filename"""
+    import hashlib
+    from django.core.files.storage import default_storage
+    
+    # Generate unique filename
+    ext = Path(uploaded_file.name).suffix.lower()
+    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    hash_part = hashlib.md5(uploaded_file.read()).hexdigest()[:8]
+    uploaded_file.seek(0)  # Reset file pointer
+    filename = f"project_{timestamp}_{hash_part}{ext}"
+    
+    # Save to static/images
+    images_dir = Path(settings.BASE_DIR) / "static" / "images"
+    images_dir.mkdir(parents=True, exist_ok=True)
+    filepath = images_dir / filename
+    
+    with open(filepath, 'wb+') as destination:
+        for chunk in uploaded_file.chunks():
+            destination.write(chunk)
+    
+    return filename
+
+
 def _ensure_staff(request):
     if not request.user.is_authenticated or not request.user.is_staff:
         messages.error(request, "Admins only.")
@@ -56,6 +110,12 @@ TAG_CHOICES = [
     "Armor", "Aircraft", "Ship", "Automotive", "Figure",
     "Tutorial", "Review", "Diorama", "WIP", "Finished"
 ]
+
+IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tif", ".tiff"}
+WORKS_MAX_ITEMS = 10
+GALLERIES_DIR = Path(settings.BASE_DIR) / "static" / "images" / "galleries"
+PROJECTS_DIR = Path(settings.BASE_DIR) / "projects_store"
+PROJECTS_DIR.mkdir(exist_ok=True)
 
 def contact(request):
     if request.method == 'POST':
@@ -87,62 +147,16 @@ def contact(request):
     return render(request, 'contact.html')
 
 def home(request):
-    return render(request, 'home.html')
+    works_items = _load_works_items()
+    hero_images = _load_infinite_images() or works_items
+    return render(request, 'home.html', {"works_items": works_items, "hero_images": hero_images})
 
 def works(request):
-    # seed works (static)
-    base_items = [
-        {"src": "images/Orange-colored-cat-yawns-displaying-teeth.webp", "title": "Benetton B186"},
-        {"src": "images/images.jpg", "title": "Ferrari SF-23"},
-        {"src": "images/Earhart-3-scaled.jpg", "title": "Porsche 962C"},
-        {"src": "images/images (1).jpg", "title": "McLaren M23"},
-        {"src": "images/images.jpg", "title": "F-16 Fighting Falcon"},
-        {"src": "images/Orange-colored-cat-yawns-displaying-teeth.webp", "title": "USS Nimitz"},
-        {"src": "images/Earhart-3-scaled.jpg", "title": "British Spitfire Mk XIV"},
-        {"src": "images/images (1).jpg", "title": "Tiger I"},
-    ]
-
-    uploads_dir = Path(settings.BASE_DIR) / "static" / "images" / "works_uploads"
-    uploads_dir.mkdir(parents=True, exist_ok=True)
-    # Handle admin upload
-    if request.method == 'POST':
-        if not request.user.is_authenticated or not request.user.is_staff:
-            messages.error(request, "Admins only can add pictures.")
-            return redirect('works')
-        # Upload flow
-        upload = request.FILES.get('work_image')
-        title = request.POST.get('title', '') or (upload.name if upload else None)
-        if upload:
-            safe_name = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{Path(upload.name).name}"
-            target = uploads_dir / safe_name
-            with target.open('wb') as fh:
-                for chunk in upload.chunks():
-                    fh.write(chunk)
-            messages.success(request, "Image saved to static/ images/works_uploads.")
-        else:
-            messages.error(request, "Please choose an image.")
-        return redirect('works')
-
-    # Collected uploads
-    upload_items = []
-    for path in uploads_dir.glob("*"):
-        if path.is_file():
-            upload_items.append({
-                "src": f"images/works_uploads/{path.name}",
-                "title": path.stem,
-            })
-
-    works_items = base_items + upload_items
-
-    # Search filter
-    query = request.GET.get('q', '').strip().lower()
-    if query:
-        works_items = [
-            item for item in works_items
-            if query in (item.get("title") or "").lower()
-        ]
-
-    return render(request, 'works.html', {"works_items": works_items, "works_query": request.GET.get('q', '')})
+    projects = _load_projects()
+    return render(request, 'works.html', {
+        "projects": projects,
+        "is_admin": request.user.is_authenticated and request.user.is_staff,
+    })
 
 def articles(request):
     items = _load_articles()
@@ -198,6 +212,63 @@ def manage_articles(request):
         return redirect('articles')
     items = _load_articles()
     return render(request, 'manage_articles.html', {"articles": items})
+
+
+def add_work(request, gallery_id="default"):
+    """
+    Simple server-rendered uploader for gallery items.
+    Requires title, image, and thumbnail. Admin-only.
+    """
+    if not _ensure_staff(request):
+        return redirect('works')
+
+    gallery_id = _slugify(gallery_id)
+    gallery_dir = _gallery_dir(gallery_id)
+    meta_path = _gallery_meta_path(gallery_id)
+    gallery_dir.mkdir(parents=True, exist_ok=True)
+    errors = {}
+    draft_title = ""
+    used_count = _gallery_item_count(gallery_id)
+    limit_reached = used_count >= WORKS_MAX_ITEMS
+
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        draft_title = title
+        image_file = request.FILES.get('image')
+        thumb_file = request.FILES.get('thumbnail')
+
+        if limit_reached:
+            errors.setdefault("limit", []).append(f"Limit reached ({WORKS_MAX_ITEMS} photos). Remove one to add another.")
+        if not title:
+            errors.setdefault("title", []).append("Title is required.")
+        if not image_file:
+            errors.setdefault("image", []).append("Full image is required.")
+        if not thumb_file:
+            errors.setdefault("thumbnail", []).append("Thumbnail image is required.")
+
+        def _valid_image(file_obj):
+            return file_obj and Path(file_obj.name).suffix.lower() in IMAGE_EXTS
+
+        if image_file and not _valid_image(image_file):
+            errors.setdefault("image", []).append("Full image must be an image file.")
+        if thumb_file and not _valid_image(thumb_file):
+            errors.setdefault("thumbnail", []).append("Thumbnail must be an image file.")
+
+        if not errors and used_count < WORKS_MAX_ITEMS:
+            new_item = _save_gallery_item(gallery_id, title, image_file, thumb_file)
+            messages.success(request, "Work added.")
+            target = f"{reverse('works')}?gallery={gallery_id}&select={new_item.get('id')}"
+            return redirect(target)
+
+    context = {
+        "errors": errors,
+        "draft_title": draft_title,
+        "works_used": used_count,
+        "works_limit": WORKS_MAX_ITEMS,
+        "limit_reached": limit_reached,
+        "gallery_id": gallery_id,
+    }
+    return render(request, 'add_work.html', context)
 
 
 def _article_form(request, article_id=None, is_edit=False):
@@ -300,3 +371,413 @@ def _article_form(request, article_id=None, is_edit=False):
             })
 
     return render(request, 'add_article.html', context)
+
+
+def _load_works_meta(meta_path: Path):
+    """
+    Reads optional metadata for uploads and normalizes shape.
+    Supports both {"file.jpg": "Title"} and {"file.jpg": {"title": "...", "tags": [...], "genre": "...", "quality": "...", "thumb": "thumb.jpg"}}.
+    """
+    if not meta_path.exists():
+        return {}
+    try:
+        data = json.loads(meta_path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+    normalized = {}
+    if not isinstance(data, dict):
+        return normalized
+
+    for key, val in data.items():
+        title = Path(key).stem
+        tags = []
+        genre = None
+        quality = None
+        extra_tags = []
+        thumb = None
+        if isinstance(val, dict):
+            title = val.get("title") or val.get("name") or title
+            extra_tags = val.get("tags") or []
+            genre = val.get("genre")
+            quality = val.get("quality")
+            thumb = val.get("thumb")
+        elif val:
+            title = str(val)
+
+        if genre:
+            tags.append(f"Genre:{genre}")
+        if quality:
+            tags.append(f"Quality:{quality}")
+        tags.extend([t for t in extra_tags if t])
+        entry = {"title": title, "tags": tags}
+        if thumb:
+            entry["thumb"] = thumb
+        normalized[key] = entry
+    return normalized
+
+
+def _save_works_meta(meta_path: Path, meta: dict):
+    meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _count_upload_photos(uploads_dir: Path, meta_path: Path) -> int:
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    meta = _load_works_meta(meta_path)
+    thumb_files = {entry.get("thumb") for entry in meta.values() if isinstance(entry, dict) and entry.get("thumb")}
+    count = 0
+    for path in uploads_dir.iterdir():
+        if not path.is_file() or path.suffix.lower() not in IMAGE_EXTS:
+            continue
+        if path.name in thumb_files:
+            continue
+        count += 1
+    return count
+
+
+def _gallery_dir(gallery_id: str) -> Path:
+    return GALLERIES_DIR / _slugify(gallery_id or "default")
+
+
+def _gallery_meta_path(gallery_id: str) -> Path:
+    return _gallery_dir(gallery_id) / "gallery.json"
+
+
+def _load_gallery_meta(gallery_id: str) -> dict:
+    meta_path = _gallery_meta_path(gallery_id)
+    if not meta_path.exists():
+        return {"items": []}
+    try:
+        return json.loads(meta_path.read_text(encoding="utf-8"))
+    except Exception:
+        return {"items": []}
+
+
+def _save_gallery_meta(gallery_id: str, data: dict):
+    dir_path = _gallery_dir(gallery_id)
+    dir_path.mkdir(parents=True, exist_ok=True)
+    meta_path = _gallery_meta_path(gallery_id)
+    meta_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _load_gallery_items(gallery_id: str):
+    meta = _load_gallery_meta(gallery_id)
+    items = meta.get("items") or []
+    return sorted(items, key=lambda x: x.get("createdAt", ""), reverse=True)
+
+
+def _gallery_item_count(gallery_id: str) -> int:
+    return len(_load_gallery_items(gallery_id))
+
+
+def _save_gallery_item(gallery_id: str, title: str, image_file, thumb_file):
+    dir_path = _gallery_dir(gallery_id)
+    dir_path.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    base_slug = _slugify(title) or "work"
+
+    def _store(file_obj, label):
+        fname = f"{timestamp}-{base_slug}-{label}{Path(file_obj.name).suffix.lower()}"
+        target = dir_path / fname
+        with target.open('wb') as fh:
+            for chunk in file_obj.chunks():
+                fh.write(chunk)
+        return fname
+
+    image_name = _store(image_file, "full")
+    thumb_name = _store(thumb_file, "thumb")
+    item_id = f"{timestamp}-{base_slug}"
+    item = {
+        "id": item_id,
+        "title": title,
+        "src": f"/static/images/galleries/{_slugify(gallery_id)}/{image_name}",
+        "thumb": f"/static/images/galleries/{_slugify(gallery_id)}/{thumb_name}",
+        "createdAt": timestamp,
+        "tags": ["Quality:Upload", "Genre:Misc"],
+    }
+
+    meta = _load_gallery_meta(gallery_id)
+    items = meta.get("items") or []
+    items.append(item)
+    meta["items"] = items
+    _save_gallery_meta(gallery_id, meta)
+    return item
+
+
+def _delete_gallery_item(gallery_id: str, item_id: str):
+    dir_path = _gallery_dir(gallery_id)
+    meta = _load_gallery_meta(gallery_id)
+    items = meta.get("items") or []
+    remaining = []
+    deleted_paths = []
+    for item in items:
+        if str(item.get("id")) == str(item_id):
+            if item.get("src"):
+                deleted_paths.append(dir_path / Path(item["src"]).name)
+            if item.get("thumb"):
+                deleted_paths.append(dir_path / Path(item["thumb"]).name)
+            continue
+        remaining.append(item)
+    meta["items"] = remaining
+    _save_gallery_meta(gallery_id, meta)
+    for path in deleted_paths:
+        try:
+            if path.exists():
+                path.unlink()
+        except Exception:
+            continue
+
+
+def _load_works_items():
+    uploads_dir = Path(settings.BASE_DIR) / "static" / "images" / "works_uploads"
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    uploads_meta = _load_works_meta(uploads_dir / "works_meta.json")
+    thumb_files = {entry.get("thumb") for entry in uploads_meta.values() if isinstance(entry, dict) and entry.get("thumb")}
+
+    upload_items = []
+    for path in uploads_dir.iterdir():
+        if not path.is_file() or path.suffix.lower() not in IMAGE_EXTS:
+            continue
+        if path.name in thumb_files:
+            continue
+        meta = uploads_meta.get(path.name) or uploads_meta.get(path.stem) or {}
+        title = meta.get("title") or path.stem
+        tags = list(meta.get("tags") or [])
+        thumb_override = meta.get("thumb")
+        if not any(tag.startswith("Quality:") for tag in tags):
+            tags.append("Quality:Upload")
+        if not any(tag.startswith("Genre:") for tag in tags):
+            tags.append("Genre:Misc")
+        thumb_path = f"images/works_uploads/{thumb_override}" if thumb_override else f"images/works_uploads/{path.name}"
+        upload_items.append({
+            "title": title,
+            "images": [f"images/works_uploads/{path.name}"],
+            "tags": tags,
+            "slug": _slugify(title),
+            "thumb": thumb_path,
+        })
+
+    # Sensei gallery sample from infinitecarousel (single, larger gallery)
+    sensei_dir = Path(settings.BASE_DIR) / "static" / "images" / "infinitecarousel"
+    sensei_images = []
+    if sensei_dir.exists():
+        for path in sorted(sensei_dir.glob("*")):
+            if path.is_file() and path.suffix.lower() in IMAGE_EXTS:
+                sensei_images.append(f"images/infinitecarousel/{path.name}")
+    sensei_items = []
+    if sensei_images:
+        sensei_items.append({
+            "title": "SenseiWagnibiart Gallery",
+            "images": sensei_images,
+            "tags": ["Quality:Showcase", "Genre:Mech", "SenseiWagnibiart"],
+            "slug": _slugify("SenseiWagnibiart Gallery"),
+        })
+
+    works_items = []
+    for item in sensei_items + upload_items:
+        item = item.copy()
+        if "slug" not in item:
+            item["slug"] = _slugify(item["title"])
+        item["thumb"] = item.get("thumb") or (item["images"][0] if item.get("images") else None)
+        works_items.append(item)
+    return works_items
+
+
+def _load_infinite_images():
+    images_dir = Path(settings.BASE_DIR) / "static" / "images" / "infinitecarousel"
+    if not images_dir.exists():
+        return []
+    items = []
+    for path in sorted(images_dir.glob("*")):
+        if path.is_file() and path.suffix.lower() in IMAGE_EXTS:
+            items.append({"src": f"images/infinitecarousel/{path.name}"})
+    return items
+
+
+@require_http_methods(["GET", "POST"])
+def api_gallery_items(request, gallery_id):
+    gallery_id = _slugify(gallery_id)
+    if request.method == "GET":
+        items = _load_gallery_items(gallery_id)
+        return JsonResponse({"items": items, "limit": WORKS_MAX_ITEMS}, status=200)
+
+    # POST
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+
+    if _gallery_item_count(gallery_id) >= WORKS_MAX_ITEMS:
+        return JsonResponse({"error": f"Limit reached ({WORKS_MAX_ITEMS} photos). Remove one to add another."}, status=409)
+
+    title = request.POST.get("title", "").strip()
+    image_file = request.FILES.get("image")
+    thumb_file = request.FILES.get("thumbnail")
+
+    errors = {}
+    if not title:
+        errors["title"] = "Title is required."
+    if not image_file:
+        errors["image"] = "Full image is required."
+    if not thumb_file:
+        errors["thumbnail"] = "Thumbnail image is required."
+
+    def _valid(file_obj):
+        return file_obj and Path(file_obj.name).suffix.lower() in IMAGE_EXTS
+
+    if image_file and not _valid(image_file):
+        errors["image"] = "Full image must be an image file."
+    if thumb_file and not _valid(thumb_file):
+        errors["thumbnail"] = "Thumbnail must be an image file."
+
+    if errors:
+        return JsonResponse({"errors": errors}, status=400)
+
+    item = _save_gallery_item(gallery_id, title, image_file, thumb_file)
+    return JsonResponse({"item": item, "limit": WORKS_MAX_ITEMS}, status=201)
+
+
+@require_http_methods(["DELETE"])
+def api_gallery_item_detail(request, gallery_id, item_id):
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+    _delete_gallery_item(gallery_id, item_id)
+    return JsonResponse({"success": True})
+
+
+# Project management views
+def add_project(request):
+    """Add a new project"""
+    if not _ensure_staff(request):
+        return redirect('works')
+    
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        uploaded_images = request.FILES.getlist('images')
+        
+        errors = {}
+        if not title:
+            errors['title'] = 'Title is required.'
+        if not uploaded_images:
+            errors['images'] = 'At least one image is required.'
+        
+        # Validate image files
+        for img in uploaded_images:
+            if Path(img.name).suffix.lower() not in IMAGE_EXTS:
+                errors['images'] = f'Invalid file type: {img.name}. Only image files are allowed.'
+                break
+        
+        if not errors:
+            projects = _load_projects()
+            project_id = _slugify(title)
+            
+            # Check if ID already exists
+            if any(p.get('id') == project_id for p in projects):
+                errors['title'] = 'A project with this title already exists.'
+            else:
+                # Save uploaded images
+                saved_filenames = []
+                try:
+                    for img_file in uploaded_images:
+                        filename = _save_project_image(img_file)
+                        saved_filenames.append(filename)
+                    
+                    new_project = {
+                        "id": project_id,
+                        "title": title.upper(),
+                        "description": description,
+                        "images": saved_filenames,
+                        "created_at": datetime.utcnow().isoformat()
+                    }
+                    projects.append(new_project)
+                    _save_projects(projects)
+                    messages.success(request, f'Project added successfully with {len(saved_filenames)} images!')
+                    return redirect('works')
+                except Exception as e:
+                    errors['general'] = f'Error saving images: {str(e)}'
+        
+        if errors:
+            for key, msg in errors.items():
+                messages.error(request, msg)
+    
+    return render(request, 'add_project.html')
+
+
+def edit_project(request, project_id):
+    """Edit an existing project"""
+    if not _ensure_staff(request):
+        return redirect('works')
+    
+    project = _load_project(project_id)
+    
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        uploaded_images = request.FILES.getlist('new_images')
+        keep_existing = request.POST.get('keep_existing', 'true') == 'true'
+        
+        errors = {}
+        if not title:
+            errors['title'] = 'Title is required.'
+        
+        # Must have either existing images or upload new ones
+        if not keep_existing and not uploaded_images:
+            errors['images'] = 'At least one image is required.'
+        
+        # Validate uploaded image files
+        for img in uploaded_images:
+            if Path(img.name).suffix.lower() not in IMAGE_EXTS:
+                errors['images'] = f'Invalid file type: {img.name}. Only image files are allowed.'
+                break
+        
+        if not errors:
+            # Save new uploaded images
+            new_filenames = []
+            try:
+                for img_file in uploaded_images:
+                    filename = _save_project_image(img_file)
+                    new_filenames.append(filename)
+                
+                projects = _load_projects()
+                for p in projects:
+                    if p.get('id') == project_id:
+                        p['title'] = title.upper()
+                        p['description'] = description
+                        # Keep existing images if checkbox is checked, otherwise replace with new ones
+                        if keep_existing and new_filenames:
+                            p['images'] = p.get('images', []) + new_filenames
+                        elif new_filenames:
+                            p['images'] = new_filenames
+                        # If keeping existing and no new uploads, keep current images
+                        break
+                
+                _save_projects(projects)
+                if new_filenames:
+                    messages.success(request, f'Project updated with {len(new_filenames)} new images!')
+                else:
+                    messages.success(request, 'Project updated successfully!')
+                return redirect('works')
+            except Exception as e:
+                errors['general'] = f'Error saving images: {str(e)}'
+        
+        if errors:
+            for key, msg in errors.items():
+                messages.error(request, msg)
+    
+    return render(request, 'edit_project.html', {
+        'project': project
+    })
+
+
+def delete_project(request, project_id):
+    """Delete a project"""
+    if not _ensure_staff(request):
+        return redirect('works')
+    
+    if request.method == 'POST':
+        projects = _load_projects()
+        projects = [p for p in projects if p.get('id') != project_id]
+        _save_projects(projects)
+        messages.success(request, 'Project deleted successfully!')
+    
+    return redirect('works')
+

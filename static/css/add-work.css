@@ -1,0 +1,134 @@
+.add-work{
+  padding-top: 18px;
+}
+
+.add-work__hero{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.add-work__title{
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(2.1rem, 4vw, 2.6rem);
+  letter-spacing: 0.01em;
+}
+
+.add-work__lede{
+  margin: 0;
+  font-family: var(--sans);
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.add-work__form{
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.add-work__counter{
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 14px;
+  border: 1px solid var(--rule);
+  padding: 10px 12px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-work__counter-note{
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.add-work .field{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.add-work .field label{
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.add-work .field input[type="text"],
+.add-work .field input[type="file"]{
+  border: 1px solid var(--rule);
+  padding: 10px 12px;
+  font-family: var(--sans);
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.field--split{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.preview{
+  margin-top: 8px;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px dashed var(--rule);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: rgba(11,11,11,0.03);
+}
+
+.preview img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.field-error{
+  color: #b00020;
+  font-family: var(--sans);
+  font-size: 12px;
+}
+
+.actions{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.primary-btn{
+  padding: 10px 16px;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  font-family: var(--sans);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary-btn[disabled]{
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ghost-link{
+  font-family: var(--sans);
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.limit-note{
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--muted);
+}

@@ -1,0 +1,214 @@
+.lightboxGallery{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 32px 24px 22px;
+  gap: 16px;
+  background: var(--lightbox-overlay, rgba(11,11,11,0.82));
+  color: var(--ink, #0b0b0b);
+  font-family: inherit;
+  transition: opacity 0.2s ease;
+}
+
+.lightboxGallery.lightboxGallery--hidden{
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.lightboxGallery__close{
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: 1px solid var(--rule, rgba(11,11,11,0.22));
+  color: currentColor;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.lightboxGallery__main{
+  width: min(92vw, 1200px);
+  max-height: calc(100vh - 170px);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.lightboxGallery__stage{
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  background: var(--bg, #ffffff);
+  border: 1px solid var(--rule, rgba(11,11,11,0.22));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.lightboxGallery__image{
+  max-width: 100%;
+  max-height: 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.28s ease;
+  user-select: none;
+}
+
+.lightboxGallery__image.is-loaded{
+  opacity: 1;
+}
+
+.lightboxGallery__caption{
+  position: absolute;
+  bottom: 10px;
+  left: 12px;
+  right: 12px;
+  padding: 8px 10px;
+  background: rgba(0,0,0,0.36);
+  color: var(--bg, #ffffff);
+  font-size: 13px;
+  line-height: 1.4;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.lightboxGallery__caption.is-visible{
+  opacity: 1;
+}
+
+.lightboxGallery__nav{
+  background: rgba(255,255,255,0.8);
+  border: 1px solid var(--rule, rgba(11,11,11,0.22));
+  color: var(--ink, #0b0b0b);
+  width: 44px;
+  height: 80px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+[data-theme="dark"] .lightboxGallery__nav{
+  background: rgba(65,64,66,0.9);
+}
+
+.lightboxGallery__nav:active{
+  transform: translateY(1px);
+}
+
+.lightboxGallery__nav svg{
+  width: 18px;
+  height: 18px;
+}
+
+.lightboxGallery__thumbs{
+  width: min(96vw, 1200px);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.lightboxGallery__thumbsScroller{
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+}
+
+.lightboxGallery__thumbsInner{
+  display: flex;
+  gap: 10px;
+}
+
+.lightboxGallery__thumb{
+  position: relative;
+  width: 96px;
+  height: 72px;
+  border: 1px solid var(--rule, rgba(11,11,11,0.22));
+  background: var(--bg, #ffffff);
+  padding: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lightboxGallery__thumb[aria-current="true"]{
+  border-color: var(--ink, #0b0b0b);
+  box-shadow: 0 0 0 2px var(--ink, #0b0b0b);
+}
+
+.lightboxGallery__thumb img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.lightboxGallery__thumb:focus-visible,
+.lightboxGallery__close:focus-visible,
+.lightboxGallery__nav:focus-visible{
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.lightboxGallery__thumbsHint{
+  color: var(--muted, rgba(11,11,11,0.7));
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+@media (max-width: 900px){
+  .lightboxGallery{
+    padding: 20px 14px 16px;
+  }
+  .lightboxGallery__main{
+    width: 100%;
+    grid-template-columns: 1fr;
+    max-height: none;
+  }
+  .lightboxGallery__nav{
+    width: 44px;
+    height: 44px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.92;
+  }
+  .lightboxGallery__nav--prev{ left: 8px; }
+  .lightboxGallery__nav--next{ right: 8px; }
+  .lightboxGallery__main{
+    position: relative;
+  }
+  .lightboxGallery__stage{
+    min-height: 240px;
+  }
+}
+
+@media (max-width: 560px){
+  .lightboxGallery__thumb{
+    width: 78px;
+    height: 60px;
+  }
+  .lightboxGallery__thumbsHint{
+    display: none;
+  }
+}
