@@ -55,24 +55,6 @@
   margin: 0 calc(-1 * var(--page-pad-x)) 18px calc(-1 * var(--page-pad-x));
 }
 
-.marquee-frame::before,
-.marquee-frame::after{
-  content:"";
-  position:absolute;
-  left: 8px;
-  right: 28px;
-  height: 2px;
-  background: var(--ink);
-}
-.marquee-frame::before{
-  top: 4px;
-  transform: translateX(-12px);
-}
-.marquee-frame::after{
-  bottom: 4px;
-  transform: translateX(12px);
-}
-
 .marquee-banner{
   width: 100%;
   overflow: hidden;
@@ -91,10 +73,10 @@
 }
 
 .marquee-row--top .marquee-group{
-  animation: marquee-left 36s linear infinite;
+  animation: marquee-left 50s linear infinite;
 }
 .marquee-row--bottom .marquee-group{
-  animation: marquee-right 38s linear infinite;
+  animation: marquee-right 52s linear infinite;
 }
 
 .marquee-group{
@@ -126,6 +108,7 @@
   font-weight: 600;
   font-size: 16px;
   color: var(--muted);
+  text-align: left;
 }
 
 .about-works__line{
