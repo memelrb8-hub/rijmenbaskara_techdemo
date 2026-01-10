@@ -107,8 +107,7 @@ def _ensure_staff(request):
 
 # Preset tags
 TAG_CHOICES = [
-    "Armor", "Aircraft", "Ship", "Automotive", "Figure",
-    "Tutorial", "Review", "Diorama", "WIP", "Finished"
+    "40k", "30k", "Age of Sigmar"
 ]
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tif", ".tiff"}
@@ -215,7 +214,41 @@ def about(request):
 
 def article_detail(request, article_id):
     article = _load_article(article_id)
-    return render(request, 'article_detail.html', {"article": article})
+    all_articles = _load_articles()
+    
+    # Get article tags for matching
+    current_tags = set(article.get("tags") or [])
+    current_slug = article.get("slug") or article_id
+    
+    # Find related articles (same tags, excluding current)
+    related = []
+    other_articles = []
+    
+    for art in all_articles:
+        art_slug = art.get("slug") or art.get("file", "").split("/")[-1].replace(".json", "")
+        if art_slug == current_slug:
+            continue
+            
+        art_tags = set(art.get("tags") or [])
+        if current_tags & art_tags:  # Has common tags
+            related.append(art)
+        else:
+            other_articles.append(art)
+    
+    # Sort by date (newest first) - using created_at timestamp
+    related.sort(key=lambda x: x.get("created_at") or "", reverse=True)
+    other_articles.sort(key=lambda x: x.get("created_at") or "", reverse=True)
+    
+    # Take up to 3 related, fill remaining with other articles
+    related_posts = related[:3]
+    if len(related_posts) < 3:
+        related_posts.extend(other_articles[:3 - len(related_posts)])
+    
+    return render(request, 'article_detail.html', {
+        "article": article,
+        "related_posts": related_posts,
+        "tag_choices": TAG_CHOICES
+    })
 
 def add_article(request):
     if not _ensure_staff(request):

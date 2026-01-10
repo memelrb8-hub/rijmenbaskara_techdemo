@@ -1,4 +1,5 @@
 {% load static %}
+{% load article_extras %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -75,33 +76,26 @@
               </div>
             </section>
 
-            <section class="timeline anim-up">
-              <div class="timeline__years">
-                {% if year_list %}
-                  {% for year, _ in year_list %}
-                    <div class="timeline__year {% if forloop.first %}is-current{% endif %}">{{ year }}</div>
-                  {% endfor %}
-                {% else %}
-                  <div class="timeline__year is-muted">—</div>
-                {% endif %}
-              </div>
-              <div class="timeline__list">
-                {% if year_list %}
-                  {% for year, items in year_list %}
-                    {% for item in items %}
-                      <div class="timeline__row">
-                        <span class="timeline__year-label">{{ year }}</span>
-                        <a class="timeline__title" href="{% url 'article_detail' item.id|default:item.slug %}">{{ item.title }}</a>
-                        {% if request.user.is_staff %}
-                          <a class="timeline__edit" href="{% url 'edit_article' item.id|default:item.slug %}">Edit</a>
-                        {% endif %}
-                      </div>
-                    {% endfor %}
-                  {% endfor %}
-                {% else %}
-                  <p class="coming-soon">No saved articles yet.</p>
-                {% endif %}
-              </div>
+            <section class="articles-grid anim-up">
+              {% if year_list %}
+                {% for year, items in year_list %}
+                  <div class="year-section">
+                    <div class="year-label">{{ year }}</div>
+                    <div class="articles-column">
+                      {% for item in items %}
+                        <div class="article-item">
+                          <span class="article-date">{{ item.created_at|format_article_date }}</span>
+                          <a href="{% url 'article_detail' item.id|default:item.slug %}" class="article-link">
+                            {{ item.title }}
+                          </a>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <p class="coming-soon">No saved articles yet.</p>
+              {% endif %}
             </section>
 
             <!-- Footer -->
