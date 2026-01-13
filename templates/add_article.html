@@ -56,7 +56,8 @@
                 <li>One cover slot up top — drop a landscape photo or skip it.</li>
                 <li>Large title + airy leading; quick toolbar for headings, lists, quotes.</li>
                 <li>Keyboard-first: Ctrl/Cmd + B/I/U or start lines with #, ##, or &gt; then space.</li>
-                <li>Save writes a JSON file locally (plus cover if uploaded) so you can manage it like documents.</li>
+                <li>Click the 📷 button to insert images anywhere in your article text.</li>
+                <li>Save writes a JSON file locally (plus images) so you can manage it like documents.</li>
               </ul>
             </section>
 
@@ -140,7 +141,12 @@
                 <button type="button" data-command="insertUnorderedList" title="Bulleted list">• • •</button>
                 <button type="button" data-command="formatBlock:blockquote" title="Blockquote">❝</button>
                 <button type="button" data-command="createLink" title="Link">Link</button>
+                <span class="divider"></span>
+                <button type="button" id="insertImageBtn" title="Insert Image">📷</button>
               </div>
+              
+              <!-- Hidden file input for inline images -->
+              <input type="file" id="inlineImageInput" accept="image/*" hidden multiple>
 
               <div
                 class="editor-body"

@@ -8,6 +8,8 @@
   const coverPreview = document.getElementById('coverPreview');
   const coverPreviewImg = document.getElementById('coverPreviewImg');
   const removeCover = document.getElementById('removeCover');
+  const insertImageBtn = document.getElementById('insertImageBtn');
+  const inlineImageInput = document.getElementById('inlineImageInput');
 
   if (!form || !editor) return;
 
@@ -108,6 +110,67 @@
     removeCover.addEventListener('click', () => {
       if (coverInput) coverInput.value = '';
       resetCover();
+    });
+  }
+
+  // Inline image insertion
+  if (insertImageBtn && inlineImageInput) {
+    insertImageBtn.addEventListener('click', (evt) => {
+      evt.preventDefault();
+      inlineImageInput.click();
+    });
+
+    inlineImageInput.addEventListener('change', (evt) => {
+      const files = evt.target.files;
+      if (!files || files.length === 0) return;
+
+      // Save current selection/range
+      const sel = window.getSelection();
+      let range = null;
+      if (sel.rangeCount > 0) {
+        range = sel.getRangeAt(0);
+      }
+
+      Array.from(files).forEach((file) => {
+        if (!file.type.startsWith('image/')) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.alt = file.name;
+          img.className = 'inline-image';
+          img.style.maxWidth = '100%';
+          img.style.height = 'auto';
+          img.style.display = 'block';
+          img.style.margin = '20px 0';
+
+          // Insert at saved range or at end
+          if (range) {
+            sel.removeAllRanges();
+            sel.addRange(range);
+            range.insertNode(img);
+            
+            // Move cursor after image
+            range.setStartAfter(img);
+            range.setEndAfter(img);
+            sel.removeAllRanges();
+            sel.addRange(range);
+
+            // Add line break after image for better editing
+            const br = document.createElement('br');
+            range.insertNode(br);
+          } else {
+            editor.appendChild(img);
+            const br = document.createElement('br');
+            editor.appendChild(br);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // Reset input for reuse
+      inlineImageInput.value = '';
     });
   }
 })();
