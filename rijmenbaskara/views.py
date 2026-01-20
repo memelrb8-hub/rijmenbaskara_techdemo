@@ -112,8 +112,10 @@ def _save_project_image(uploaded_file):
 
 
 def _ensure_staff(request):
-    if not request.user.is_authenticated or not request.user.is_staff:
-        messages.error(request, "Admins only.")
+    # On Vercel, request.user doesn't exist (no auth middleware)
+    if not hasattr(request, 'user') or not request.user.is_authenticated or not request.user.is_staff:
+        if hasattr(request, 'user'):
+            messages.error(request, "Admins only.")
         return False
     return True
 
@@ -188,9 +190,11 @@ def home(request):
 
 def works(request):
     projects = _load_projects()
+    # On Vercel, request.user doesn't exist (no auth middleware)
+    is_admin = hasattr(request, 'user') and request.user.is_authenticated and request.user.is_staff
     return render(request, 'works.html', {
         "projects": projects,
-        "is_admin": request.user.is_authenticated and request.user.is_staff,
+        "is_admin": is_admin,
     })
 
 def articles(request):
@@ -771,7 +775,8 @@ def api_gallery_items(request, gallery_id):
         return JsonResponse({"items": items, "limit": WORKS_MAX_ITEMS}, status=200)
 
     # POST
-    if not request.user.is_authenticated or not request.user.is_staff:
+    # On Vercel, request.user doesn't exist (no auth middleware)
+    if not hasattr(request, 'user') or not request.user.is_authenticated or not request.user.is_staff:
         return JsonResponse({"error": "Unauthorized"}, status=403)
 
     if _gallery_item_count(gallery_id) >= WORKS_MAX_ITEMS:
@@ -806,7 +811,8 @@ def api_gallery_items(request, gallery_id):
 
 @require_http_methods(["DELETE"])
 def api_gallery_item_detail(request, gallery_id, item_id):
-    if not request.user.is_authenticated or not request.user.is_staff:
+    # On Vercel, request.user doesn't exist (no auth middleware)
+    if not hasattr(request, 'user') or not request.user.is_authenticated or not request.user.is_staff:
         return JsonResponse({"error": "Unauthorized"}, status=403)
     _delete_gallery_item(gallery_id, item_id)
     return JsonResponse({"success": True})
