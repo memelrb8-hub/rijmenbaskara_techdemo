@@ -9,15 +9,20 @@ from django.views.decorators.csrf import csrf_exempt
 from pathlib import Path
 import json
 import re
+import os
 from datetime import datetime
 import zipfile
 import io
 
 # File-based article storage (local file management)
 ARTICLES_DIR = Path(settings.BASE_DIR) / "articles_store"
-ARTICLES_DIR.mkdir(exist_ok=True)
-ARTICLES_COVERS_DIR = ARTICLES_DIR / "covers"
-ARTICLES_COVERS_DIR.mkdir(exist_ok=True)
+# Only create directories when not on Vercel (read-only filesystem)
+if not os.environ.get('VERCEL'):
+    ARTICLES_DIR.mkdir(exist_ok=True)
+    ARTICLES_COVERS_DIR = ARTICLES_DIR / "covers"
+    ARTICLES_COVERS_DIR.mkdir(exist_ok=True)
+else:
+    ARTICLES_COVERS_DIR = ARTICLES_DIR / "covers"
 
 
 def _slugify(value: str) -> str:
@@ -73,6 +78,8 @@ def _load_project(project_id: str):
 
 def _save_projects(projects):
     """Save projects list to JSON file"""
+    if os.environ.get('VERCEL'):
+        return  # Cannot write on read-only filesystem
     projects_file = PROJECTS_DIR / "seed_projects.json"
     projects_file.write_text(json.dumps(projects, indent=2), encoding="utf-8")
 
@@ -89,7 +96,10 @@ def _save_project_image(uploaded_file):
     uploaded_file.seek(0)  # Reset file pointer
     filename = f"project_{timestamp}_{hash_part}{ext}"
     
-    # Save to static/images
+    # Save to static/images (disabled on Vercel)
+    if os.environ.get('VERCEL'):
+        return None  # Cannot save on read-only filesystem
+    
     images_dir = Path(settings.BASE_DIR) / "static" / "images"
     images_dir.mkdir(parents=True, exist_ok=True)
     filepath = images_dir / filename
@@ -116,7 +126,9 @@ IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tif", ".tiff"}
 WORKS_MAX_ITEMS = 10
 GALLERIES_DIR = Path(settings.BASE_DIR) / "static" / "images" / "galleries"
 PROJECTS_DIR = Path(settings.BASE_DIR) / "projects_store"
-PROJECTS_DIR.mkdir(exist_ok=True)
+# Only create directory on local/Docker, not Vercel
+if not os.environ.get('VERCEL'):
+    PROJECTS_DIR.mkdir(exist_ok=True)
 
 def contact(request):
     if request.method == 'POST':
@@ -357,7 +369,9 @@ def add_work(request, gallery_id="default"):
     gallery_id = _slugify(gallery_id)
     gallery_dir = _gallery_dir(gallery_id)
     meta_path = _gallery_meta_path(gallery_id)
-    gallery_dir.mkdir(parents=True, exist_ok=True)
+    # Prevent directory creation on Vercel (read-only filesystem)
+    if not os.environ.get('VERCEL'):
+        gallery_dir.mkdir(parents=True, exist_ok=True)
     errors = {}
     draft_title = ""
     used_count = _gallery_item_count(gallery_id)
@@ -386,11 +400,16 @@ def add_work(request, gallery_id="default"):
         if thumb_file and not _valid_image(thumb_file):
             errors.setdefault("thumbnail", []).append("Thumbnail must be an image file.")
 
+        # Block saves on Vercel
+        if os.environ.get('VERCEL'):
+            errors.setdefault("vercel", []).append("Content editing is disabled on Vercel (read-only deployment).")
+
         if not errors and used_count < WORKS_MAX_ITEMS:
             new_item = _save_gallery_item(gallery_id, title, image_file, thumb_file)
-            messages.success(request, "Work added.")
-            target = f"{reverse('works')}?gallery={gallery_id}&select={new_item.get('id')}"
-            return redirect(target)
+            if new_item:
+                messages.success(request, "Work added.")
+                target = f"{reverse('works')}?gallery={gallery_id}&select={new_item.get('id')}"
+                return redirect(target)
 
     context = {
         "errors": errors,
@@ -470,26 +489,37 @@ def _article_form(request, article_id=None, is_edit=False):
 
             cover_path = existing.get("cover") if existing else None
             if request.FILES.get('cover'):
-                cover_file = request.FILES['cover']
-                cover_name = f"{article_id}{Path(cover_file.name).suffix}"
-                target = ARTICLES_COVERS_DIR / cover_name
-                with target.open('wb') as fh:
-                    for chunk in cover_file.chunks():
-                        fh.write(chunk)
-                cover_path = f"{settings.MEDIA_URL}covers/{cover_name}"
+                # Prevent writes on Vercel (read-only filesystem)
+                if os.environ.get('VERCEL'):
+                    messages.error(request, 'File uploads are disabled on Vercel (read-only deployment).')
+                else:
+                    cover_file = request.FILES['cover']
+                    cover_name = f"{article_id}{Path(cover_file.name).suffix}"
+                    target = ARTICLES_COVERS_DIR / cover_name
+                    with target.open('wb') as fh:
+                        for chunk in cover_file.chunks():
+                            fh.write(chunk)
+                    cover_path = f"{settings.MEDIA_URL}covers/{cover_name}"
 
             record["cover"] = cover_path
             record["id"] = article_id
             record["file"] = str(_article_path(article_id).relative_to(settings.BASE_DIR))
 
-            _article_path(article_id).write_text(
-                json.dumps(record, ensure_ascii=False, indent=2),
-                encoding="utf-8"
-            )
-            messages.success(
-                request,
-                'Draft saved locally.' if is_edit else 'Draft created locally.'
-            )
+            # Prevent writes on Vercel (read-only filesystem)
+            if not os.environ.get('VERCEL'):
+                _article_path(article_id).write_text(
+                    json.dumps(record, ensure_ascii=False, indent=2),
+                    encoding="utf-8"
+                )
+                messages.success(
+                    request,
+                    'Draft saved locally.' if is_edit else 'Draft created locally.'
+                )
+            else:
+                messages.error(
+                    request,
+                    'Content editing is disabled on Vercel (read-only deployment).'
+                )
             if not is_edit:
                 return redirect('manage_articles')
 
@@ -550,11 +580,13 @@ def _load_works_meta(meta_path: Path):
 
 
 def _save_works_meta(meta_path: Path, meta: dict):
-    meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    if not os.environ.get('VERCEL'):
+        meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def _count_upload_photos(uploads_dir: Path, meta_path: Path) -> int:
-    uploads_dir.mkdir(parents=True, exist_ok=True)
+    if not os.environ.get('VERCEL'):
+        uploads_dir.mkdir(parents=True, exist_ok=True)
     meta = _load_works_meta(meta_path)
     thumb_files = {entry.get("thumb") for entry in meta.values() if isinstance(entry, dict) and entry.get("thumb")}
     count = 0
@@ -586,6 +618,8 @@ def _load_gallery_meta(gallery_id: str) -> dict:
 
 
 def _save_gallery_meta(gallery_id: str, data: dict):
+    if os.environ.get('VERCEL'):
+        return  # Cannot write on read-only filesystem
     dir_path = _gallery_dir(gallery_id)
     dir_path.mkdir(parents=True, exist_ok=True)
     meta_path = _gallery_meta_path(gallery_id)
@@ -603,6 +637,8 @@ def _gallery_item_count(gallery_id: str) -> int:
 
 
 def _save_gallery_item(gallery_id: str, title: str, image_file, thumb_file):
+    if os.environ.get('VERCEL'):
+        return None  # Cannot write on read-only filesystem
     dir_path = _gallery_dir(gallery_id)
     dir_path.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
@@ -662,7 +698,8 @@ def _delete_gallery_item(gallery_id: str, item_id: str):
 
 def _load_works_items():
     uploads_dir = Path(settings.BASE_DIR) / "static" / "images" / "works_uploads"
-    uploads_dir.mkdir(parents=True, exist_ok=True)
+    if not os.environ.get('VERCEL'):
+        uploads_dir.mkdir(parents=True, exist_ok=True)
     uploads_meta = _load_works_meta(uploads_dir / "works_meta.json")
     thumb_files = {entry.get("thumb") for entry in uploads_meta.values() if isinstance(entry, dict) and entry.get("thumb")}
 
