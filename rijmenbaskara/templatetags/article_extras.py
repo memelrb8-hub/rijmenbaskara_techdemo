@@ -24,3 +24,12 @@ def format_article_date(timestamp_str):
         pass
     
     return timestamp_str[:8] if len(timestamp_str) >= 8 else timestamp_str
+
+
+@register.filter(name='is_staff')
+def is_staff(request):
+    """
+    Safely check if request has a user and if that user is staff.
+    Works even when auth middleware is disabled (Vercel).
+    """
+    return hasattr(request, 'user') and hasattr(request.user, 'is_staff') and request.user.is_staff
