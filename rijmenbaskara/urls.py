@@ -34,6 +34,7 @@ urlpatterns = [
     path('articles/', views.articles, name='articles'),
     path('articles/new/', views.add_article, name='add_article'),
     path('articles/manage/', views.manage_articles, name='manage_articles'),
+    path('articles/export-backup/', views.export_content_backup, name='export_content_backup'),
     path('articles/<slug:article_id>/edit/', views.edit_article, name='edit_article'),
     path('articles/<slug:article_id>/', views.article_detail, name='article_detail'),
     path('about/', views.about, name='about'),

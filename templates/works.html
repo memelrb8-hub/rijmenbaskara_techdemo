@@ -36,6 +36,7 @@
               {% if request.user.is_staff %}
                 <a class="nav__link" href="{% url 'manage_articles' %}">Manage</a>
                 <a class="nav__link" href="{% url 'add_article' %}">Add</a>
+                <a class="nav__link" href="{% url 'export_content_backup' %}" title="Download backup">📦 Export</a>
               {% endif %}
               <a class="nav__link" href="{% url 'about' %}">About</a>
               <a class="nav__link" href="{% url 'contact' %}">Contact</a>

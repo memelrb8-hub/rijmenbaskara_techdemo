@@ -10,6 +10,8 @@ from pathlib import Path
 import json
 import re
 from datetime import datetime
+import zipfile
+import io
 
 # File-based article storage (local file management)
 ARTICLES_DIR = Path(settings.BASE_DIR) / "articles_store"
@@ -267,6 +269,81 @@ def manage_articles(request):
         return redirect('articles')
     items = _load_articles()
     return render(request, 'manage_articles.html', {"articles": items})
+
+
+def export_content_backup(request):
+    """
+    Admin-only: Create a ZIP file containing all content files
+    (articles, images, projects) for backup and easy restoration.
+    """
+    if not _ensure_staff(request):
+        return redirect('articles')
+    
+    # Create in-memory ZIP file
+    zip_buffer = io.BytesIO()
+    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        # Add articles_store directory (JSON files and covers)
+        articles_dir = Path(settings.BASE_DIR) / "articles_store"
+        if articles_dir.exists():
+            for file_path in articles_dir.rglob('*'):
+                if file_path.is_file():
+                    arcname = file_path.relative_to(settings.BASE_DIR)
+                    zip_file.write(file_path, arcname)
+        
+        # Add static/images directory (galleries, projects, etc.)
+        images_dir = Path(settings.BASE_DIR) / "static" / "images"
+        if images_dir.exists():
+            for file_path in images_dir.rglob('*'):
+                if file_path.is_file():
+                    arcname = file_path.relative_to(settings.BASE_DIR)
+                    zip_file.write(file_path, arcname)
+        
+        # Add projects_store directory
+        projects_dir = Path(settings.BASE_DIR) / "projects_store"
+        if projects_dir.exists():
+            for file_path in projects_dir.rglob('*'):
+                if file_path.is_file():
+                    arcname = file_path.relative_to(settings.BASE_DIR)
+                    zip_file.write(file_path, arcname)
+        
+        # Add a README for restoration instructions
+        readme_content = """# Content Backup - Rijmen & Baskara
+
+## Backup Date: {date}
+
+## Contents:
+- articles_store/: All article JSON files and cover images
+- static/images/: Gallery images, project images, and other static images
+- projects_store/: Project data files
+
+## Restoration Instructions:
+
+1. Extract this ZIP file
+2. Copy the folders to your project root directory:
+   - articles_store/ -> <project_root>/articles_store/
+   - static/images/ -> <project_root>/static/images/
+   - projects_store/ -> <project_root>/projects_store/
+
+3. Ensure proper permissions (on Linux/Mac):
+   chmod -R 755 articles_store/ static/images/ projects_store/
+
+4. Restart your Django server
+
+All content will be immediately available.
+""".format(date=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"))
+        
+        zip_file.writestr('README_RESTORATION.txt', readme_content)
+    
+    # Prepare HTTP response
+    zip_buffer.seek(0)
+    response = HttpResponse(zip_buffer.getvalue(), content_type='application/zip')
+    response['Content-Disposition'] = f'attachment; filename="rijmenbaskara_backup_{timestamp}.zip"'
+    
+    messages.success(request, f'Backup created successfully: rijmenbaskara_backup_{timestamp}.zip')
+    
+    return response
 
 
 def add_work(request, gallery_id="default"):
