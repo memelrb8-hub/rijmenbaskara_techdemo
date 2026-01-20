@@ -1,0 +1,293 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="referrer" content="origin" />
+  <title>Rijmen & Baskara - Home</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/home.css' %}">
+</head>
+
+<body>
+  <div class="page-frame">
+    <div class="page" role="document">
+      <div class="page-scroll" id="pageScroll">
+
+        <!-- Top navigation -->
+        <header class="topbar">
+          <div class="container topbar__inner">
+            <div class="brand">
+              <a href="{% url 'home' %}" class="brand__link">R&amp;B</a>
+            </div>
+
+            <nav class="nav" aria-label="Primary">
+              <a class="nav__link" href="{% url 'works' %}">Works</a>
+              <a class="nav__link" href="{% url 'articles' %}">Article</a>
+              {% if request.user.is_staff %}
+                <a class="nav__link" href="{% url 'manage_articles' %}">Manage</a>
+                <a class="nav__link" href="{% url 'add_article' %}">Add</a>
+                <a class="nav__link" href="{% url 'export_content_backup' %}" title="Download backup">📦 Export</a>
+              {% endif %}
+              <a class="nav__link" href="{% url 'about' %}">About</a>
+              <a class="nav__link" href="{% url 'contact' %}">Contact</a>
+              <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                <span class="theme-icon">☀️</span>
+              </button>
+            </nav>
+          </div>
+        </header>
+
+        <!-- Main content -->
+        <main class="content home-content">
+          <div class="container">
+
+            <!-- Hero Section replaced with marquee banner -->
+            <section class="hero-section anim-fade">
+              <div class="hero-slogan">
+                RIJMEN &amp; BASKARA creates Bespoke Miniatures for artistic, interactive, and historical display
+              </div>
+              <div class="marquee-frame">
+                <div class="marquee-banner">
+                  <div class="marquee-row marquee-row--top">
+                    <div class="marquee-group">
+                      {% for item in hero_images %}
+                        <div class="marquee-card">
+                          <img src="{% static item.src %}" alt="Gallery image">
+                        </div>
+                      {% endfor %}
+                    </div>
+                    <div class="marquee-group" aria-hidden="true">
+                      {% for item in hero_images %}
+                        <div class="marquee-card">
+                          <img src="{% static item.src %}" alt="Gallery image">
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                  <div class="marquee-row marquee-row--bottom">
+                    <div class="marquee-group">
+                      {% for item in hero_images %}
+                        <div class="marquee-card">
+                          <img src="{% static item.src %}" alt="Gallery image">
+                        </div>
+                      {% endfor %}
+                    </div>
+                    <div class="marquee-group" aria-hidden="true">
+                      {% for item in hero_images %}
+                        <div class="marquee-card">
+                          <img src="{% static item.src %}" alt="Gallery image">
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="about-works anim-fade">
+              <p class="about-works__body">
+                Warhammer is a hobby of building, painting, and gaming with miniature armies. It blends careful model-making with rich lore and narrative campaigns. Every project moves from assembly to paint to weathering so armies look lived-in. Games play out on tabletops as strategy, dice, and tactics meet visual storytelling. It’s creative craft, competitive play, and shared fiction all at once.
+              </p>
+              <div class="about-works__line"></div>
+            </section>
+
+            <!-- Works Section -->
+            <section class="works-section anim-up">
+              <div class="section-header-row">
+                <h2 class="section-title">Works</h2>
+                <a href="{% url 'works' %}" class="view-all-btn">View all projects <span aria-hidden="true">→</span></a>
+              </div>
+
+              <!-- Browse Bar -->
+              <div class="browse-bar">
+                <div class="search-box">
+                  <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                  </svg>
+                  <input type="text" id="worksSearch" placeholder="Search projects…" aria-label="Search projects">
+                </div>
+                <select id="worksSort" class="sort-dropdown" aria-label="Sort projects">
+                  <option value="az">A–Z</option>
+                  <option value="za">Z–A</option>
+                </select>
+                <div class="filter-chips">
+                  <button class="filter-chip active" data-category="all">All</button>
+                  <button class="filter-chip" data-category="30k">30k</button>
+                  <button class="filter-chip" data-category="40k">40k</button>
+                  <button class="filter-chip" data-category="terrain">Terrain</button>
+                  <button class="filter-chip" data-category="age-of-sigmar">AoS</button>
+                </div>
+              </div>
+
+              <div class="works-grid" id="worksGrid">
+                {% for item in works_items %}
+                  <a class="work-card" href="{% url 'works' %}#{{ item.slug }}" data-category="{{ item.category|default:'all' }}" data-title="{{ item.title|lower }}">
+                    <div class="work-image">
+                      <img src="{% static item.thumb %}" alt="{{ item.title }}" loading="lazy">
+                      <div class="view-overlay">
+                        <span class="view-arrow">View →</span>
+                      </div>
+                    </div>
+                    <div class="work-info">
+                      <h3 class="work-title">{{ item.title }}</h3>
+                      {% if item.category %}
+                      <div class="work-tags">
+                        <span class="tag-pill">{{ item.category|upper }}</span>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </a>
+                {% endfor %}
+              </div>
+            </section>
+
+            <!-- Featured Articles Section -->
+            <section class="articles-section anim-up">
+                <div class="section-header-row">
+                  <h2 class="section-title">Featured Articles</h2>
+                  <a href="{% url 'articles' %}" class="view-all-btn">View all articles <span aria-hidden="true">→</span></a>
+                </div>
+
+                <!-- Optional Category Filter -->
+                <div class="article-filters">
+                  <button class="filter-chip active" data-filter="all">All</button>
+                  <button class="filter-chip" data-filter="reviews">Reviews</button>
+                  <button class="filter-chip" data-filter="tutorials">Tutorials</button>
+                  <button class="filter-chip" data-filter="news">News</button>
+                </div>
+
+              <div class="article-list">
+                <a href="#" class="article-row is-featured" data-category="reviews">
+                  <div class="article-thumbnail">
+                    <img src="{% static 'images/images.jpg' %}" alt="Hawker Tempest" loading="lazy">
+                  </div>
+                  <div class="article-content">
+                    <div class="article-header">
+                      <h3 class="article-title">The Definitive Eduard Hawker Tempest Mk.V Review</h3>
+                      <span class="tag-pill">Review</span>
+                    </div>
+                    <p class="article-excerpt">
+                      The Tempest was born out as an attempt to address the shortcomings of Hawker Typhoon. Work had been going on in the Hawker design office since 1940...
+                    </p>
+                    <div class="article-meta">
+                      <span class="article-date">Aug 12, 2023</span>
+                      <span class="article-reading-time">5 min read</span>
+                    </div>
+                  </div>
+                </a>
+
+                <a href="#" class="article-row is-featured" data-category="tutorials">
+                  <div class="article-thumbnail">
+                    <img src="{% static 'images/images (1).jpg' %}" alt="PT 579/588" loading="lazy">
+                  </div>
+                  <div class="article-content">
+                    <div class="article-header">
+                      <h3 class="article-title">Building the Revell PT 579/588</h3>
+                      <span class="tag-pill">Tutorial</span>
+                    </div>
+                    <p class="article-excerpt">
+                      The Elco was the prominent boat used in the Pacific, and it came into its own as a gunboat. Proving especially effective when employed...
+                    </p>
+                    <div class="article-meta">
+                      <span class="article-date">Jul 28, 2023</span>
+                      <span class="article-reading-time">8 min read</span>
+                    </div>
+                  </div>
+                </a>
+
+                <a href="#" class="article-row is-featured" data-category="tutorials">
+                  <div class="article-thumbnail">
+                    <img src="{% static 'images/Earhart-3-scaled.jpg' %}" alt="A-26 Invader" loading="lazy">
+                  </div>
+                  <div class="article-content">
+                    <div class="article-header">
+                      <h3 class="article-title">Building the Revell Monogram A-26 Invader</h3>
+                      <span class="tag-pill">Tutorial</span>
+                    </div>
+                    <p class="article-excerpt">
+                      This kit originally made its appearance in 1993 as an A-26C under the Monogram label. However in 1986 Monogram and Revell had already merged...
+                    </p>
+                    <div class="article-meta">
+                      <span class="article-date">Jun 10, 2023</span>
+                      <span class="article-reading-time">6 min read</span>
+                    </div>
+                  </div>
+                </a>
+              </div>
+
+              <div class="view-more-wrap">
+                <a href="{% url 'articles' %}" class="view-all-btn">View more articles <span aria-hidden="true">→</span></a>
+              </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="footer">
+              <div class="footer__topline" aria-hidden="true"></div>
+
+              <div class="footer__main-grid">
+                <div class="footer__col">
+                  <div class="footer__label">Company</div>
+                  <ul class="footer__list">
+                    <li><a href="{% url 'about' %}">About</a></li>
+                    <li><a href="{% url 'contact' %}">Contact</a></li>
+                    <li><a href="{% url 'works' %}">Works</a></li>
+                    <li><a href="{% url 'articles' %}">Articles</a></li>
+                  </ul>
+                </div>
+
+                <div class="footer__col">
+                  <div class="footer__label">Rijmen &amp; Baskara</div>
+                  <div class="footer__meta">
+                    <a href="tel:+628119695661">+628119695661</a><br />
+                    <a href="mailto:rijmenbaskara@works.com">rijmenbaskara@works.com</a><br />
+                    <a href="https://facebook.com" target="_blank" rel="noopener">Facebook</a><br />
+                    <a href="https://instagram.com" target="_blank" rel="noopener">Instagram</a>
+                  </div>
+                </div>
+
+                <div class="footer__col footer__col--form">
+                  <div class="footer__label">SEND MESSAGE</div>
+                  <form method="post" action="{% url 'contact' %}" class="contact-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                      <label for="email">Your Email</label>
+                      <input type="email" id="email" name="email" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                      <label for="message">Message</label>
+                      <textarea id="message" name="message" required rows="4" placeholder="Your message here..."></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Send Message</button>
+                  </form>
+                </div>
+              </div>
+
+              <div class="footer__bottom">
+                <div class="footer__fineprint">© 2022 Rijmen and Baskara All Rights Reserved</div>
+                <div class="footer__fineprint footer__fineprint--right">
+                  Developed by Hazel (your name)<br />
+                  Designed by Andi Aulia Halim
+                </div>
+              </div>
+            </footer>
+
+          </div>
+        </main>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="{% static 'js/theme-toggle.js' %}"></script>
+  <script src="{% static 'js/home.js' %}"></script>
+</body>
+</html>

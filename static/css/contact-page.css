@@ -1,0 +1,58 @@
+/* =========================
+   Contact Page Styles
+   File: static/css/contact-page.css
+   ========================= */
+
+.contact{
+  padding-top: 10px;
+}
+
+.contact-title{
+  margin: 0 0 10px;
+  font-family: var(--serif);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+  line-height: 0.86;
+  font-size: clamp(4.2rem, 7.2vw, 7rem);
+}
+
+.contact-subtitle{
+  margin: 0 0 30px;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.contact-block{
+  display: grid;
+  gap: 36px;
+  margin-top: 12px;
+  margin-bottom: 40px;
+  max-width: 520px;
+}
+
+.contact-item__title{
+  margin: 0 0 2px;
+  font-family: var(--serif);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  font-size: 42px;
+  line-height: 0.95;
+}
+
+.contact-item__value{
+  margin: 0;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 18px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+a.contact-item__value:hover{
+  text-decoration: underline;
+  text-underline-offset: 8px;
+}

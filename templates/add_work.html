@@ -1,0 +1,167 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Add Work - Rijmen & Baskara</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/add-work.css' %}">
+</head>
+
+<body>
+  <div class="page-frame">
+    <div class="page" role="document">
+      <div class="page-scroll" id="pageScroll">
+
+        <header class="topbar">
+          <div class="container topbar__inner">
+            <div class="brand">
+              <a href="{% url 'home' %}" class="brand__link">R&amp;B</a>
+            </div>
+
+            <nav class="nav" aria-label="Primary">
+              <a class="nav__link" href="{% url 'works' %}">Works</a>
+              <a class="nav__link" href="{% url 'articles' %}">Article</a>
+              {% if request.user.is_staff %}
+                <a class="nav__link" href="{% url 'manage_articles' %}">Manage</a>
+                <a class="nav__link" href="{% url 'add_article' %}">Add</a>
+              {% endif %}
+              <a class="nav__link" href="{% url 'about' %}">About</a>
+              <a class="nav__link" href="{% url 'contact' %}">Contact</a>
+              <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                <span class="theme-icon">??</span>
+              </button>
+            </nav>
+          </div>
+        </header>
+
+        <main class="content">
+          <div class="container add-work">
+            <section class="add-work__hero anim-fade">
+              <p class="eyebrow">Gallery</p>
+              <h1 class="add-work__title">Add Work</h1>
+              <p class="add-work__lede">Gallery ID: {{ gallery_id }}</p>
+              <p class="add-work__lede">Upload a full image and a thumbnail. Both are required.</p>
+            </section>
+
+            {% if messages %}
+              <div class="flash-stack">
+                {% for message in messages %}
+                  <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <div class="add-work__counter" data-work-counter data-used="{{ works_used }}" data-limit="{{ works_limit }}">
+              {{ works_used }} / {{ works_limit }} photos used
+              {% if limit_reached %}
+                <span class="add-work__counter-note">(Limit reached)</span>
+              {% endif %}
+            </div>
+            {% if errors.limit %}
+              <div class="alert alert-error">{{ errors.limit|join:", " }}</div>
+            {% endif %}
+
+            <form class="add-work__form anim-up" method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="field">
+                <label for="workTitle">Title</label>
+                <input type="text" id="workTitle" name="title" required placeholder="Enter a title" value="{{ draft_title|default_if_none:'' }}">
+                {% if errors.title %}
+                  <div class="field-error">{{ errors.title|join:", " }}</div>
+                {% endif %}
+              </div>
+
+              <div class="field field--split">
+                <div>
+                  <label for="workImage">Full image</label>
+                  <input type="file" id="workImage" name="image" accept="image/*" required>
+                  {% if errors.image %}
+                    <div class="field-error">{{ errors.image|join:", " }}</div>
+                  {% endif %}
+                  <div class="preview" data-preview="image"></div>
+                </div>
+                <div>
+                  <label for="workThumb">Thumbnail</label>
+                  <input type="file" id="workThumb" name="thumbnail" accept="image/*" required>
+                  {% if errors.thumbnail %}
+                    <div class="field-error">{{ errors.thumbnail|join:", " }}</div>
+                  {% endif %}
+                  <div class="preview" data-preview="thumb"></div>
+                </div>
+              </div>
+
+              <div class="actions">
+                <button type="submit" class="primary-btn" data-work-submit>Save</button>
+                <a class="ghost-link" href="{% url 'works' %}">Cancel</a>
+                <span class="limit-note" data-limit-note hidden>Limit reached ({{ works_limit }} photos). Remove one to add another.</span>
+              </div>
+            </form>
+
+            <!-- Footer -->
+            <footer class="footer">
+              <div class="footer__topline" aria-hidden="true"></div>
+
+              <div class="footer__main-grid">
+                <div class="footer__col">
+                  <div class="footer__label">Company</div>
+                  <ul class="footer__list">
+                    <li><a href="{% url 'about' %}">About</a></li>
+                    <li><a href="{% url 'contact' %}">Contact</a></li>
+                    <li><a href="{% url 'works' %}">Works</a></li>
+                    <li><a href="{% url 'articles' %}">Articles</a></li>
+                  </ul>
+                </div>
+
+                <div class="footer__col">
+                  <div class="footer__label footer__label--strong">Rijmen &amp; Baskara</div>
+                  <div class="footer__meta">
+                    <a href="tel:+628119695661">(+62) 811 9695661</a><br />
+                    <a href="mailto:rijmenbaskara@gmail.com">rijmenbaskara@gmail.com</a><br />
+                    <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook">Facebook</a><br />
+                    <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
+                  </div>
+                </div>
+
+                <div class="footer__col footer__col--form">
+                  <div class="footer__label footer__label--strong">SEND MESSAGE</div>
+                  <form method="post" action="{% url 'contact' %}" class="contact-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                      <label for="email">Your Email</label>
+                      <input type="email" id="email" name="email" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                      <label for="message">Message</label>
+                      <textarea id="message" name="message" required rows="4" placeholder="Your message here..."></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Send Message</button>
+                  </form>
+                </div>
+              </div>
+
+              <div class="footer__bottom">
+                <div class="footer__fineprint">c 2022 Rijmen and Baskara All Rights Reserved</div>
+                <div class="footer__fineprint footer__fineprint--right">
+                  Developed by Hazel (your name)<br />
+                  Designed by Andi Aulia Halim
+                </div>
+              </div>
+            </footer>
+          </div>
+        </main>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="{% static 'js/theme-toggle.js' %}"></script>
+  <script src="{% static 'js/add-work.js' %}"></script>
+</body>
+</html>

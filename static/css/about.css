@@ -1,0 +1,59 @@
+/* =========================
+   About Page Styles
+   File: static/css/about.css
+   ========================= */
+
+.about{
+  padding-top: 10px;
+}
+
+/* Big editorial title like screenshot */
+.about-title{
+  margin: 0 0 10px;
+  font-family: var(--serif);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+  line-height: 0.86;
+  font-size: clamp(4.2rem, 7.2vw, 7rem);
+}
+
+.about-kicker{
+  margin: 0 0 10px;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 18px;
+}
+
+.about-highlight{
+  margin: 0 0 18px;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.about-highlight em{
+  font-style: italic; /* key aspects italic */
+}
+
+.about-body{
+  max-width: 560px;
+}
+
+.about-body p{
+  margin: 0 0 14px;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* the vertical grey bar shown in the screenshot */
+.about-bar{
+  width: 6px;
+  height: 220px;
+  background: rgba(11,11,11,.25);
+  margin: 18px auto 0;
+}

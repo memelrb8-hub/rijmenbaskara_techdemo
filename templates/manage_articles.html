@@ -1,0 +1,167 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Manage Articles - Rijmen & Baskara</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/articles.css' %}">
+</head>
+
+<body>
+  <div class="page-frame">
+    <div class="page" role="document">
+      <div class="page-scroll" id="pageScroll">
+
+        <!-- Top navigation -->
+        <header class="topbar">
+          <div class="container topbar__inner">
+            <div class="brand">
+              <a href="{% url 'home' %}" class="brand__link">R&amp;B</a>
+            </div>
+
+            <nav class="nav" aria-label="Primary">
+              <a class="nav__link" href="{% url 'works' %}">Works</a>
+              <a class="nav__link" href="{% url 'articles' %}">Article</a>
+              {% if request.user.is_staff %}
+                <a class="nav__link is-active" href="{% url 'manage_articles' %}">Manage</a>
+                <a class="nav__link" href="{% url 'export_content_backup' %}" title="Download backup">📦 Export</a>
+              {% endif %}
+              <a class="nav__link" href="{% url 'about' %}">About</a>
+              <a class="nav__link" href="{% url 'contact' %}">Contact</a>
+              <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                <span class="theme-icon">??</span>
+              </button>
+            </nav>
+          </div>
+        </header>
+
+        <main class="content">
+          <div class="container articles">
+
+            <section class="articles-hero">
+              <h1 class="articles-title">Manage Articles</h1>
+              <p class="articles-subtitle">Edit or start a new draft. Stored locally as JSON + cover.</p>
+              <div class="articles-cta">
+                <div>
+                  <p class="eyebrow">Admin only</p>
+                  <h2>Create a new draft</h2>
+                  <p>Uses the same Medium-like composer with cover + tags.</p>
+                </div>
+                <a class="cta-btn" href="{% url 'add_article' %}">New draft</a>
+              </div>
+              
+              <div class="articles-cta" style="margin-top: 16px; background: rgba(11,11,11,0.02); border-color: var(--muted);">
+                <div>
+                  <p class="eyebrow">Backup & Export</p>
+                  <h2>Download Content Backup</h2>
+                  <p>Export all articles, images, and projects as a ZIP file for backup or migration.</p>
+                </div>
+                <a class="cta-btn" href="{% url 'export_content_backup' %}" style="background: var(--muted);">📦 Export Backup</a>
+              </div>
+            </section>
+
+            <section class="saved-list">
+              <div class="saved-list__header">
+                <h2>Your saved articles</h2>
+              </div>
+
+              {% if articles %}
+                <div class="saved-list__grid">
+                  {% for item in articles %}
+                    <article class="saved-card">
+                      <div class="saved-card__meta">
+                        <span class="saved-card__date">{{ item.created_at }}</span>
+                        <span class="saved-card__file">{{ item.file|default:item.id }}</span>
+                      </div>
+                      <h3 class="saved-card__title">{{ item.title }}</h3>
+                      {% if item.subtitle %}
+                        <p class="saved-card__subtitle">{{ item.subtitle }}</p>
+                      {% endif %}
+                      <p class="saved-card__excerpt">{{ item.body_html|striptags|truncatechars:160 }}</p>
+                      {% if item.tags %}
+                        <div class="tag-row">
+                          {% for tag in item.tags %}
+                            <span class="tag-chip">{{ tag }}</span>
+                          {% endfor %}
+                        </div>
+                      {% endif %}
+                      <div class="saved-card__actions">
+                        <a href="{% url 'edit_article' item.id %}" class="cta-btn cta-btn--ghost">Edit</a>
+                      </div>
+                    </article>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p class="coming-soon">No saved articles yet. Create one to populate this list.</p>
+              {% endif %}
+            </section>
+
+            <!-- Footer -->
+            <footer class="footer">
+          <div class="footer__topline" aria-hidden="true"></div>
+
+          <div class="footer__main-grid">
+            <div class="footer__col">
+              <div class="footer__label">Company</div>
+              <ul class="footer__list">
+                <li><a href="{% url 'about' %}">About</a></li>
+                <li><a href="{% url 'contact' %}">Contact</a></li>
+                <li><a href="{% url 'works' %}">Works</a></li>
+                <li><a href="{% url 'articles' %}">Articles</a></li>
+              </ul>
+            </div>
+
+            <div class="footer__col">
+              <div class="footer__label footer__label--strong">Rijmen &amp; Baskara</div>
+              <div class="footer__meta">
+                <a href="tel:+628119695661">(+62) 811 9695661</a><br />
+                <a href="mailto:rijmenbaskara@gmail.com">rijmenbaskara@gmail.com</a><br />
+                <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook">Facebook</a><br />
+                <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
+              </div>
+            </div>
+
+            <div class="footer__col footer__col--form">
+              <div class="footer__label footer__label--strong">SEND MESSAGE</div>
+              <form method="post" action="{% url 'contact' %}" class="contact-form">
+                {% csrf_token %}
+                <div class="form-group">
+                  <label for="email">Your Email</label>
+                  <input type="email" id="email" name="email" required placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                  <label for="message">Message</label>
+                  <textarea id="message" name="message" required rows="4" placeholder="Your message here..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Send Message</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="footer__bottom">
+            <div class="footer__fineprint">c 2022 Rijmen and Baskara All Rights Reserved</div>
+            <div class="footer__fineprint footer__fineprint--right">
+              Developed by Hazel (your name)<br />
+              Designed by Andi Aulia Halim
+            </div>
+          </div>
+        </footer>
+
+          </div>
+        </main>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="{% static 'js/theme-toggle.js' %}"></script>
+</body>
+</html>

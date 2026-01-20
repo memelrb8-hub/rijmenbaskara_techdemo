@@ -11,126 +11,134 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="{% static 'css/contact.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/contact-page.css' %}">
 </head>
 
 <body>
   <div class="page-frame">
     <div class="page" role="document">
-      <!-- Custom visual scrollbar hugging the right side -->
-      <div class="scrollbar" aria-hidden="true">
-        <div class="scrollbar__thumb" id="scrollThumb"></div>
-      </div>
-
-      <!-- Scrollable interior -->
       <div class="page-scroll" id="pageScroll">
+
         <!-- Top navigation -->
         <header class="topbar">
-          <div class="brand">
-            <a href="{% url 'home' %}" class="brand__link">R&amp;B</a>
-          </div>
+          <div class="container topbar__inner">
+            <div class="brand">
+              <a href="{% url 'home' %}" class="brand__link">R&amp;B</a>
+            </div>
 
-          <nav class="nav" aria-label="Primary">
-            <a class="nav__link" href="{% url 'works' %}">Works</a>
-            <a class="nav__link" href="{% url 'articles' %}">Article</a>
-            <a class="nav__link" href="{% url 'about' %}">About</a>
-            <a class="nav__link is-active" href="{% url 'contact' %}">Contact</a>
-            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
-              <span class="theme-icon">☀️</span>
-            </button>
-          </nav>
+            <nav class="nav" aria-label="Primary">
+              <a class="nav__link" href="{% url 'works' %}">Works</a>
+              <a class="nav__link" href="{% url 'articles' %}">Article</a>
+              {% if request.user.is_staff %}
+                <a class="nav__link" href="{% url 'manage_articles' %}">Manage</a>
+                <a class="nav__link" href="{% url 'add_article' %}">Add</a>
+                <a class="nav__link" href="{% url 'export_content_backup' %}" title="Download backup">📦 Export</a>
+              {% endif %}
+              <a class="nav__link" href="{% url 'about' %}">About</a>
+              <a class="nav__link is-active" href="{% url 'contact' %}">Contact</a>
+              <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                <span class="theme-icon">☀️</span>
+              </button>
+            </nav>
+          </div>
         </header>
 
-        <!-- Main content -->
         <main class="content">
-          <h1 class="hero-title">
-            CONTACT<br />
-            AND INFO
-          </h1>
+          <div class="container contact">
 
-          <p class="subtitle">For Commissions And General Inquiry</p>
+            <section class="contact-hero anim-fade">
+              <h1 class="contact-title">
+                CONTACT<br />
+                AND INFO
+              </h1>
+              <p class="contact-subtitle">For Commissions And General Inquiry</p>
+              
+              {% if messages %}
+                {% for message in messages %}
+                  <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                  </div>
+                {% endfor %}
+              {% endif %}
+            </section>
 
-          {% if messages %}
-            {% for message in messages %}
-              <div class="alert alert-{{ message.tags }}">
-                {{ message }}
+            <section class="contact-block anim-up" aria-label="Contact details">
+
+              <div class="contact-item">
+                <h2 class="contact-item__title">PHONE</h2>
+                <a class="contact-item__value" href="tel:+628119695661">(+62) 811 9695661</a>
               </div>
-            {% endfor %}
-          {% endif %}
 
-          <section class="contact-block" aria-label="Contact details">
-            <div class="item">
-              <h2 class="item__title">PHONE</h2>
-              <a class="item__value" href="tel:+628119695661">(+62) 811 9695661</a>
-            </div>
+              <div class="contact-item">
+                <h2 class="contact-item__title">MAIL</h2>
+                <a class="contact-item__value" href="mailto:info@rijmenbaskara.com">Info@rijmenbaskara.com</a>
+              </div>
 
-            <div class="item">
-              <h2 class="item__title">MAIL</h2>
-              <a class="item__value" href="mailto:rijmenbaskara@gmail.com">rijmenbaskara@gmail.com</a>
-            </div>
+              <div class="contact-item">
+                <h2 class="contact-item__title">SOCIALS</h2>
+                <p class="contact-item__value">Available At Instagram &amp; Facebook</p>
+              </div>
+            </section>
 
-            <div class="item">
-              <h2 class="item__title">SOCIALS</h2>
-              <p class="item__value">Available At Instagram &amp; Facebook</p>
-            </div>
-          </section>
+            <!-- Footer -->
+            <footer class="footer">
+              <div class="footer__topline" aria-hidden="true"></div>
+
+              <div class="footer__main-grid">
+                <div class="footer__col">
+                  <div class="footer__label">Company</div>
+                  <ul class="footer__list">
+                    <li><a href="{% url 'about' %}">About</a></li>
+                    <li><a href="{% url 'contact' %}">Contact</a></li>
+                    <li><a href="{% url 'works' %}">Works</a></li>
+                    <li><a href="{% url 'articles' %}">Articles</a></li>
+                  </ul>
+                </div>
+
+                <div class="footer__col">
+                  <div class="footer__label">Rijmen &amp; Baskara</div>
+                  <div class="footer__meta">
+                    <a href="tel:+628119695661">+628119695661</a><br />
+                    <a href="mailto:rijmenbaskara@works.com">rijmenbaskara@works.com</a><br />
+                    <a href="https://facebook.com" target="_blank" rel="noopener">Facebook</a><br />
+                    <a href="https://instagram.com" target="_blank" rel="noopener">Instagram</a>
+                  </div>
+                </div>
+
+                <div class="footer__col footer__col--form">
+                  <div class="footer__label">SEND MESSAGE</div>
+                  <form method="post" action="{% url 'contact' %}" class="contact-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                      <label for="email">Your Email</label>
+                      <input type="email" id="email" name="email" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                      <label for="message">Message</label>
+                      <textarea id="message" name="message" required rows="4" placeholder="Your message here..."></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Send Message</button>
+                  </form>
+                </div>
+              </div>
+
+              <div class="footer__bottom">
+                <div class="footer__fineprint">© 2022 Rijmen and Baskara All Rights Reserved</div>
+                <div class="footer__fineprint footer__fineprint--right">
+                  Developed by Hazel (your name)<br />
+                  Designed by Andi Aulia Halim
+                </div>
+              </div>
+            </footer>
+
+          </div>
         </main>
 
-        <!-- Footer -->
-        <footer class="footer">
-          <div class="footer__topline" aria-hidden="true"></div>
-
-          <div class="footer__main-grid">
-            <div class="footer__col">
-              <div class="footer__label">Company</div>
-              <ul class="footer__list">
-                <li><a href="{% url 'about' %}">About</a></li>
-                <li><a href="{% url 'contact' %}">Contact</a></li>
-                <li><a href="{% url 'works' %}">Works</a></li>
-                <li><a href="{% url 'articles' %}">Articles</a></li>
-              </ul>
-            </div>
-
-            <div class="footer__col">
-              <div class="footer__label footer__label--strong">Rijmen &amp; Baskara</div>
-              <div class="footer__meta">
-                <a href="tel:+628119695661">(+62) 811 9695661</a><br />
-                <a href="mailto:rijmenbaskara@gmail.com">rijmenbaskara@gmail.com</a><br />
-                <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook">Facebook</a><br />
-                <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
-              </div>
-            </div>
-
-            <div class="footer__col footer__col--form">
-              <div class="footer__label footer__label--strong">SEND MESSAGE</div>
-              <form method="post" action="{% url 'contact' %}" class="contact-form">
-                {% csrf_token %}
-                <div class="form-group">
-                  <label for="email">Your Email</label>
-                  <input type="email" id="email" name="email" required placeholder="your@email.com">
-                </div>
-                <div class="form-group">
-                  <label for="message">Message</label>
-                  <textarea id="message" name="message" required rows="4" placeholder="Your message here..."></textarea>
-                </div>
-                <button type="submit" class="submit-btn">Send Message</button>
-              </form>
-            </div>
-          </div>
-
-          <div class="footer__bottom">
-            <div class="footer__fineprint">© 2022 Rijmen and Baskara All Rights Reserved</div>
-            <div class="footer__fineprint footer__fineprint--right">
-              Developed by Belisarius  Cawl<br />
-              Designed by Andi Aulia Halim
-            </div>
-          </div>
-        </footer>
       </div>
     </div>
   </div>
 
-  <script src="{% static 'js/scrollbar.js' %}"></script>
   <script src="{% static 'js/theme-toggle.js' %}"></script>
 </body>
 </html>

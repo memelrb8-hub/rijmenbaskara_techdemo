@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: gunicorn --bind 0.0.0.0:8000 --workers 3 rijmenbaskara.wsgi:application
+    volumes:
+      # Mount content directories for persistence
+      - ./articles_store:/app/articles_store
+      - ./static/images:/app/static/images
+      - ./projects_store:/app/projects_store
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-please-change-this-in-production}
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+    restart: unless-stopped

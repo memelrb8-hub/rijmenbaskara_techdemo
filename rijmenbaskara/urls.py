@@ -16,6 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
@@ -23,6 +25,20 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('contact/', views.contact, name='contact'),
     path('works/', views.works, name='works'),
+    path('projects/add/', views.add_project, name='add_project'),
+    path('projects/<slug:project_id>/edit/', views.edit_project, name='edit_project'),
+    path('projects/<slug:project_id>/delete/', views.delete_project, name='delete_project'),
+    path('works/<slug:gallery_id>/add/', views.add_work, name='add_work'),
+    path('api/galleries/<slug:gallery_id>/items/', views.api_gallery_items, name='api_gallery_items'),
+    path('api/galleries/<slug:gallery_id>/items/<slug:item_id>/', views.api_gallery_item_detail, name='api_gallery_item_detail'),
     path('articles/', views.articles, name='articles'),
+    path('articles/new/', views.add_article, name='add_article'),
+    path('articles/manage/', views.manage_articles, name='manage_articles'),
+    path('articles/export-backup/', views.export_content_backup, name='export_content_backup'),
+    path('articles/<slug:article_id>/edit/', views.edit_article, name='edit_article'),
+    path('articles/<slug:article_id>/', views.article_detail, name='article_detail'),
     path('about/', views.about, name='about'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

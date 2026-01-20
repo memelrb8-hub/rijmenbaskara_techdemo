@@ -1,0 +1,206 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Works - Rijmen & Baskara</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/works.css' %}">
+  <script defer src="{% static 'js/lightbox.js' %}"></script>
+  <script defer src="{% static 'js/carousel.js' %}"></script>
+  <script defer src="{% static 'js/filter.js' %}"></script>
+</head>
+
+<body>
+  <div class="page-frame">
+    <div class="page" role="document">
+      <div class="page-scroll" id="pageScroll">
+
+        <!-- Top navigation -->
+        <header class="topbar">
+          <div class="container topbar__inner">
+            <div class="brand">
+              <a href="{% url 'home' %}" class="brand__link">R&amp;B</a>
+            </div>
+
+            <nav class="nav" aria-label="Primary">
+              <a class="nav__link is-active" href="{% url 'works' %}">Works</a>
+              <a class="nav__link" href="{% url 'articles' %}">Article</a>
+              {% if request.user.is_staff %}
+                <a class="nav__link" href="{% url 'manage_articles' %}">Manage</a>
+                <a class="nav__link" href="{% url 'add_article' %}">Add</a>
+                <a class="nav__link" href="{% url 'export_content_backup' %}" title="Download backup">📦 Export</a>
+              {% endif %}
+              <a class="nav__link" href="{% url 'about' %}">About</a>
+              <a class="nav__link" href="{% url 'contact' %}">Contact</a>
+              <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                <span class="theme-icon">☀️</span>
+              </button>
+            </nav>
+          </div>
+        </header>
+
+        <main class="content">
+          <div class="container works">
+
+            <section class="works-hero">
+              <h1 class="works-title">Gallery</h1>
+              <p class="works-subtitle">Rijmen & Baskara gallery - browse our projects.</p>
+              {% if is_admin %}
+                <a class="works-add-btn" href="{% url 'add_project' %}">+ Add New Project</a>
+              {% endif %}
+            </section>
+
+            <!-- Search and Filter Controls -->
+            <section class="search-filter-section">
+              <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search projects..." aria-label="Search projects">
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                </svg>
+              </div>
+              <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="30k">30k</button>
+                <button class="filter-btn" data-filter="40k">40k</button>
+                <button class="filter-btn" data-filter="terrain">Terrain</button>
+                <button class="filter-btn" data-filter="age-of-sigmar">Age of Sigmar</button>
+              </div>
+            </section>
+
+            <!-- Gallery Grid -->
+            <section class="works-gallery-grid">
+              
+              {% for project in projects %}
+              <div class="project-section" id="{{ project.id }}" data-project data-title="{{ project.title|lower }}" data-category="{{ project.category|default:'all' }}">
+                <div class="project-header">
+                  <h2 class="project-title">{{ project.title }}</h2>
+                  {% if is_admin %}
+                  <div class="project-actions">
+                    <a href="{% url 'edit_project' project.id %}" class="btn-edit">Edit</a>
+                    <form method="post" action="{% url 'delete_project' project.id %}" style="display:inline;" onsubmit="return confirm('Delete this project?');">
+                      {% csrf_token %}
+                      <button type="submit" class="btn-delete">Delete</button>
+                    </form>
+                  </div>
+                  {% endif %}
+                </div>
+                {% if project.description %}
+                <p class="project-description">{{ project.description }}</p>
+                {% endif %}
+                <div class="project-carousel" data-carousel="project-{{ project.id }}">
+                  <div class="carousel-container">
+                    <button class="carousel-btn carousel-prev" aria-label="Previous image">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                      </svg>
+                    </button>
+                    <div class="carousel-track">
+                      {% for image in project.images %}
+                      <div class="carousel-slide {% if forloop.first %}active{% endif %}" data-lightbox="project-{{ project.id }}" data-image="{% static 'images/' %}{{ image }}">
+                        <img src="{% static 'images/' %}{{ image }}" alt="{{ project.title }}" loading="lazy">
+                      </div>
+                      {% endfor %}
+                    </div>
+                    <button class="carousel-btn carousel-next" aria-label="Next image">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="carousel-pagination">
+                    {% for image in project.images %}
+                    <button class="pagination-thumb {% if forloop.first %}active{% endif %}" aria-label="Go to image {{ forloop.counter }}">
+                      <img src="{% static 'images/' %}{{ image }}" alt="Thumbnail {{ forloop.counter }}">
+                    </button>
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+              {% empty %}
+              <div class="no-projects">
+                <p>No projects yet. {% if is_admin %}<a href="{% url 'add_project' %}">Add your first project!</a>{% endif %}</p>
+              </div>
+              {% endfor %}
+
+            </section>
+
+            <!-- Lightbox Modal -->
+            <div id="lightbox" class="lightbox">
+              <button class="lightbox-close" aria-label="Close">&times;</button>
+              <button class="lightbox-prev" aria-label="Previous">‹</button>
+              <button class="lightbox-next" aria-label="Next">›</button>
+              <div class="lightbox-content">
+                <img src="" alt="" id="lightbox-image">
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="footer">
+          <div class="footer__topline" aria-hidden="true"></div>
+
+          <div class="footer__main-grid">
+            <div class="footer__col">
+              <div class="footer__label">Company</div>
+              <ul class="footer__list">
+                <li><a href="{% url 'about' %}">About</a></li>
+                <li><a href="{% url 'contact' %}">Contact</a></li>
+                <li><a href="{% url 'works' %}">Works</a></li>
+                <li><a href="{% url 'articles' %}">Articles</a></li>
+              </ul>
+            </div>
+
+            <div class="footer__col">
+              <div class="footer__label footer__label--strong">Rijmen &amp; Baskara</div>
+              <div class="footer__meta">
+                <a href="tel:+628119695661">(+62) 811 9695661</a><br />
+                <a href="mailto:rijmenbaskara@gmail.com">rijmenbaskara@gmail.com</a><br />
+                <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook">Facebook</a><br />
+                <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
+              </div>
+            </div>
+
+            <div class="footer__col footer__col--form">
+              <div class="footer__label footer__label--strong">SEND MESSAGE</div>
+              <form method="post" action="{% url 'contact' %}" class="contact-form">
+                {% csrf_token %}
+                <div class="form-group">
+                  <label for="email">Your Email</label>
+                  <input type="email" id="email" name="email" required placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                  <label for="message">Message</label>
+                  <textarea id="message" name="message" required rows="4" placeholder="Your message here..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Send Message</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="footer__bottom">
+            <div class="footer__fineprint">© 2022 Rijmen and Baskara All Rights Reserved</div>
+            <div class="footer__fineprint footer__fineprint--right">
+              Developed by Hazel (your name)<br />
+              Designed by Andi Aulia Halim
+            </div>
+          </div>
+        </footer>
+
+          </div>
+        </main>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="{% static 'js/theme-toggle.js' %}"></script>
+</body>
+</html>
