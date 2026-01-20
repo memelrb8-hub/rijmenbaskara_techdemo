@@ -14,14 +14,12 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('', views.home, name='home'),
     path('contact/', views.contact, name='contact'),
     path('works/', views.works, name='works'),
@@ -39,6 +37,11 @@ urlpatterns = [
     path('articles/<slug:article_id>/', views.article_detail, name='article_detail'),
     path('about/', views.about, name='about'),
 ]
+
+# Only include admin URL if admin app is installed (not on Vercel)
+if 'django.contrib.admin' in settings.INSTALLED_APPS:
+    from django.contrib import admin
+    urlpatterns.insert(0, path('admin/', admin.site.urls))
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
