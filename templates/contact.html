@@ -38,9 +38,6 @@
               {% endif %}
               <a class="nav__link" href="{% admin_url 'about' %}">About</a>
               <a class="nav__link is-active" href="{% admin_url 'contact' %}">Contact</a>
-              <a class="nav__link" href="{% url 'toggle_view' %}" style="color: {% if request|is_staff %}#e74c3c{% else %}#3498db{% endif %}; font-weight: 600;">
-                {% if request|is_staff %}👤 Admin{% else %}👁️ User{% endif %}
-              </a>
               <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
                 <span class="theme-icon">☀️</span>
               </button>
@@ -144,6 +141,5 @@
   </div>
 
   <script src="{% static 'js/theme-toggle.js' %}"></script>
-  <script src="{% static 'js/admin-persist.js' %}"></script>
 </body>
 </html>

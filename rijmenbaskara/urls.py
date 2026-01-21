@@ -20,7 +20,6 @@ from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
-    path('toggle-view/', views.toggle_view, name='toggle_view'),
     path('', views.home, name='home'),
     path('contact/', views.contact, name='contact'),
     path('works/', views.works, name='works'),
