@@ -63,6 +63,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Add custom middleware for Vercel database initialization
+if os.environ.get('VERCEL'):
+    MIDDLEWARE.insert(0, 'rijmenbaskara.middleware.VercelDatabaseMiddleware')
+
 ROOT_URLCONF = 'rijmenbaskara.urls'
 
 TEMPLATES = [
