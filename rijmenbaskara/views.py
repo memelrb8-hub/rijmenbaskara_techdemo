@@ -26,7 +26,7 @@ def toggle_view(request):
         return redirect('home')
     
     # Parse the URL to toggle admin parameter
-    from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+    from urllib.parse import urlparse, parse_qs, urlencode
     parsed = urlparse(referer)
     query_params = parse_qs(parsed.query)
     
@@ -38,18 +38,13 @@ def toggle_view(request):
         # Add admin parameter (switch to admin view)
         query_params['admin'] = ['true']
     
-    # Rebuild URL
-    new_query = urlencode(query_params, doseq=True)
-    new_url = urlunparse((
-        parsed.scheme,
-        parsed.netloc,
-        parsed.path,
-        parsed.params,
-        new_query,
-        parsed.fragment
-    ))
+    # Rebuild URL path with query
+    redirect_path = parsed.path or '/'
+    if query_params:
+        new_query = urlencode(query_params, doseq=True)
+        redirect_path = f"{redirect_path}?{new_query}"
     
-    return redirect(new_url)
+    return redirect(redirect_path)
 
 # File-based article storage (local file management)
 ARTICLES_DIR = Path(settings.BASE_DIR) / "articles_store"
