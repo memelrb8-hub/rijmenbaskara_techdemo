@@ -39,10 +39,9 @@ urlpatterns = [
     path('about/', views.about, name='about'),
 ]
 
-# Only include admin URL if admin app is installed (not on Vercel)
-if 'django.contrib.admin' in settings.INSTALLED_APPS:
-    from django.contrib import admin
-    urlpatterns.insert(0, path('admin/', admin.site.urls))
+# Include admin URL (now works on Vercel with cookie-based sessions)
+from django.contrib import admin
+urlpatterns.insert(0, path('admin/', admin.site.urls))
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

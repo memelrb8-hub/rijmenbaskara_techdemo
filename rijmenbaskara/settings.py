@@ -40,59 +40,30 @@ if os.environ.get('VERCEL_URL'):
 
 # Application definition
 
-# Disable database-dependent apps for Vercel
-if os.environ.get('VERCEL'):
-    INSTALLED_APPS = [
-        'django.contrib.staticfiles',
-        'rijmenbaskara',
-    ]
-else:
-    INSTALLED_APPS = [
-        'django.contrib.admin',
-        'django.contrib.auth',
-        'django.contrib.contenttypes',
-        'django.contrib.sessions',
-        'django.contrib.messages',
-        'django.contrib.staticfiles',
-        'rijmenbaskara',
-    ]
+# Enable Django admin on Vercel using cookie-based sessions
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'rijmenbaskara',
+]
 
-# Disable database-dependent middleware for Vercel
-if os.environ.get('VERCEL'):
-    MIDDLEWARE = [
-        'django.middleware.security.SecurityMiddleware',
-        'whitenoise.middleware.WhiteNoiseMiddleware',
-        'django.middleware.common.CommonMiddleware',
-        'django.middleware.csrf.CsrfViewMiddleware',
-        'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    ]
-else:
-    MIDDLEWARE = [
-        'django.middleware.security.SecurityMiddleware',
-        'whitenoise.middleware.WhiteNoiseMiddleware',
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.middleware.common.CommonMiddleware',
-        'django.middleware.csrf.CsrfViewMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-        'django.contrib.messages.middleware.MessageMiddleware',
-        'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    ]
+# Enable all middleware including sessions and auth for Vercel
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
 
 ROOT_URLCONF = 'rijmenbaskara.urls'
-
-# Remove auth/messages context processors on Vercel (apps disabled)
-if os.environ.get('VERCEL'):
-    TEMPLATE_CONTEXT_PROCESSORS = [
-        'django.template.context_processors.csrf',
-        'django.template.context_processors.request',
-    ]
-else:
-    TEMPLATE_CONTEXT_PROCESSORS = [
-        'django.template.context_processors.csrf',
-        'django.template.context_processors.request',
-        'django.contrib.auth.context_processors.auth',
-        'django.contrib.messages.context_processors.messages',
-    ]
 
 TEMPLATES = [
     {
@@ -100,7 +71,12 @@ TEMPLATES = [
         'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
-            'context_processors': TEMPLATE_CONTEXT_PROCESSORS,
+            'context_processors': [
+                'django.template.context_processors.csrf',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
         },
     },
 ]
@@ -111,13 +87,25 @@ WSGI_APPLICATION = 'rijmenbaskara.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Use in-memory database for Vercel (ephemeral)
+# Use in-memory database for Vercel (ephemeral, resets on each function call)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': ':memory:' if os.environ.get('VERCEL') else BASE_DIR / 'db.sqlite3',
     }
 }
+
+# Session configuration for Vercel (cookie-based sessions, no database needed)
+if os.environ.get('VERCEL'):
+    SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SECURE = True  # HTTPS only on Vercel
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_AGE = 86400  # 24 hours
+else:
+    # Use database sessions locally
+    SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
 
 
 # Password validation
