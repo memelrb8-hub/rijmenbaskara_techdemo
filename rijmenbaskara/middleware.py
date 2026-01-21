@@ -1,6 +1,7 @@
 """
 Middleware to ensure database is initialized on Vercel.
-This handles the in-memory database setup for each serverless function instance.
+POC: Now using /tmp/db.sqlite3 which persists within a function instance.
+Still checks and creates admin if needed (cold starts may wipe /tmp).
 """
 import os
 from django.db import connection
@@ -9,16 +10,19 @@ from django.core.management import call_command
 
 class VercelDatabaseMiddleware:
     """
-    Middleware that ensures the in-memory database is initialized
-    before processing any requests on Vercel.
+    POC Middleware: Ensures database tables exist and admin user is created.
+    With /tmp/db.sqlite3, this should only run once per function instance.
     """
     
     def __init__(self, get_response):
         self.get_response = get_response
+        self._initialized = False
     
     def __call__(self, request):
-        # Ensure database is initialized on every request
-        self.ensure_database()
+        # Only check once per function instance
+        if not self._initialized:
+            self.ensure_database()
+            self._initialized = True
         return self.get_response(request)
     
     @staticmethod
@@ -44,23 +48,40 @@ class VercelDatabaseMiddleware:
                 table_exists = cursor.fetchone() is not None
             
             if not table_exists:
+                print("POC: Creating database tables in /tmp/db.sqlite3...")
                 # Create all tables
                 call_command('migrate', '--run-syncdb', verbosity=0, interactive=False)
-                
-                # Create superuser
-                username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
-                email = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@example.com')
-                password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'admin')
-                
+            
+            # Always check if admin user exists and create if missing
+            username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
+            email = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@example.com')
+            password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'admin')
+            
+            # Check if admin exists
+            admin_exists = User.objects.filter(username=username).exists()
+            
+            if not admin_exists:
+                print(f"POC: Creating superuser: {username}")
                 User.objects.create_superuser(
                     username=username,
                     email=email,
                     password=password
                 )
+                print(f"POC: Superuser '{username}' created with password '{password}'")
+                
+                # Verify it was created
+                if User.objects.filter(username=username).exists():
+                    admin_user = User.objects.get(username=username)
+                    print(f"POC: Verified user '{username}' (ID: {admin_user.id}, staff: {admin_user.is_staff}, superuser: {admin_user.is_superuser})")
+                else:
+                    print(f"POC WARNING: Failed to create user '{username}'")
+            else:
+                print(f"POC: Admin user '{username}' already exists in /tmp/db.sqlite3")
             
         except Exception as e:
             # Log but don't crash
-            print(f"Database initialization error: {e}")
+            print(f"POC: Database initialization error: {e}")
             import traceback
             traceback.print_exc()
+
 
