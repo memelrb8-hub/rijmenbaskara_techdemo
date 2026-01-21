@@ -29,7 +29,11 @@ def format_article_date(timestamp_str):
 @register.filter(name='is_staff')
 def is_staff(request):
     """
-    Safely check if request has a user and if that user is staff.
-    Works even when auth middleware is disabled (Vercel).
+    Check if viewing in admin mode (POC: uses URL parameter).
+    Falls back to actual auth if available.
     """
+    # For Vercel POC: check URL parameter for admin mode
+    if hasattr(request, 'GET') and request.GET.get('admin') == 'true':
+        return True
+    # Fallback to actual authentication
     return hasattr(request, 'user') and hasattr(request.user, 'is_staff') and request.user.is_staff
