@@ -53,6 +53,7 @@ INSTALLED_APPS = [
 
 # Enable all middleware including sessions and auth for Vercel
 MIDDLEWARE = [
+    'rijmenbaskara.middleware.VercelDatabaseMiddleware',  # Must be first
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -62,10 +63,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-# Add custom middleware for Vercel database initialization
-if os.environ.get('VERCEL'):
-    MIDDLEWARE.insert(0, 'rijmenbaskara.middleware.VercelDatabaseMiddleware')
 
 ROOT_URLCONF = 'rijmenbaskara.urls'
 
