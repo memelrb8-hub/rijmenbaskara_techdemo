@@ -88,21 +88,29 @@ WSGI_APPLICATION = 'rijmenbaskara.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Use in-memory database for Vercel (ephemeral, resets on each function call)
+# POC: Use /tmp/db.sqlite3 on Vercel (TEMPORARY, NON-PERSISTENT)
+# WARNING: /tmp is ephemeral and will be wiped on cold starts or redeploys
+# This is acceptable for proof-of-concept only, NOT for production
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:' if os.environ.get('VERCEL') else BASE_DIR / 'db.sqlite3',
+        'NAME': '/tmp/db.sqlite3' if os.environ.get('VERCEL') else BASE_DIR / 'db.sqlite3',
     }
 }
 
-# Session configuration for Vercel (cookie-based sessions, no database needed)
+# Session configuration for Vercel
 if os.environ.get('VERCEL'):
+    # POC: Using file-based DB now, but keep cookie sessions for better performance
     SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SECURE = True  # HTTPS only on Vercel
     SESSION_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_AGE = 86400  # 24 hours
+    
+    # POC: Admin credentials (created during build in build_files.sh)
+    os.environ.setdefault('DJANGO_SUPERUSER_USERNAME', 'admin')
+    os.environ.setdefault('DJANGO_SUPERUSER_EMAIL', 'admin@example.com')
+    os.environ.setdefault('DJANGO_SUPERUSER_PASSWORD', 'admin')
 else:
     # Use database sessions locally
     SESSION_ENGINE = 'django.contrib.sessions.backends.db'
