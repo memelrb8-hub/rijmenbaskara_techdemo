@@ -14,38 +14,6 @@ from datetime import datetime
 import zipfile
 import io
 
-
-def toggle_view(request):
-    """
-    Toggle between user and admin view for Vercel proof of concept.
-    Uses URL parameter to track admin mode state (no session needed).
-    """
-    # Get the referring page or default to home
-    referer = request.META.get('HTTP_REFERER', '')
-    if not referer:
-        return redirect('home')
-    
-    # Parse the URL to toggle admin parameter
-    from urllib.parse import urlparse, parse_qs, urlencode
-    parsed = urlparse(referer)
-    query_params = parse_qs(parsed.query)
-    
-    # Toggle admin mode
-    if 'admin' in query_params:
-        # Remove admin parameter (switch to user view)
-        query_params.pop('admin', None)
-    else:
-        # Add admin parameter (switch to admin view)
-        query_params['admin'] = ['true']
-    
-    # Rebuild URL path with query
-    redirect_path = parsed.path or '/'
-    if query_params:
-        new_query = urlencode(query_params, doseq=True)
-        redirect_path = f"{redirect_path}?{new_query}"
-    
-    return redirect(redirect_path)
-
 # File-based article storage (local file management)
 ARTICLES_DIR = Path(settings.BASE_DIR) / "articles_store"
 # Only create directories when not on Vercel (read-only filesystem)
