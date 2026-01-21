@@ -37,3 +37,20 @@ def is_staff(request):
         return True
     # Fallback to actual authentication
     return hasattr(request, 'user') and hasattr(request.user, 'is_staff') and request.user.is_staff
+
+
+@register.simple_tag(takes_context=True)
+def admin_url(context, url_name, *args, **kwargs):
+    """
+    Generate URL that preserves admin mode parameter.
+    Usage: {% admin_url 'view_name' %} or {% admin_url 'view_name' arg1 arg2 %}
+    """
+    from django.urls import reverse
+    request = context.get('request')
+    url = reverse(url_name, args=args, kwargs=kwargs)
+    
+    # If currently in admin mode, append the parameter
+    if request and hasattr(request, 'GET') and request.GET.get('admin') == 'true':
+        url += '?admin=true'
+    
+    return url

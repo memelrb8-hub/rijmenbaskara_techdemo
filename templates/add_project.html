@@ -168,10 +168,10 @@
             <a href="{% url 'home' %}" class="brand__link">R&amp;B</a>
           </div>
           <nav class="nav">
-            <a class="nav__link" href="{% url 'works' %}">Works</a>
-            <a class="nav__link" href="{% url 'articles' %}">Article</a>
-            <a class="nav__link" href="{% url 'about' %}">About</a>
-            <a class="nav__link" href="{% url 'contact' %}">Contact</a>
+            <a class="nav__link" href="{% admin_url 'works' %}">Works</a>
+            <a class="nav__link" href="{% admin_url 'articles' %}">Article</a>
+            <a class="nav__link" href="{% admin_url 'about' %}">About</a>
+            <a class="nav__link" href="{% admin_url 'contact' %}">Contact</a>
             <a class="nav__link" href="{% url 'toggle_view' %}" style="color: {% if request|is_staff %}#e74c3c{% else %}#3498db{% endif %}; font-weight: 600;">
               {% if request|is_staff %}👤 Admin{% else %}👁️ User{% endif %}
             </a>
