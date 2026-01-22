@@ -32,6 +32,9 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get
 CSRF_TRUSTED_ORIGINS = [
     'https://*.vercel.app',
     'https://*.now.sh',
+    'https://rijmenbaskaratechdemo.vercel.app',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
 ]
 if os.environ.get('VERCEL_URL'):
     CSRF_TRUSTED_ORIGINS.append(f"https://{os.environ.get('VERCEL_URL')}")
@@ -103,9 +106,16 @@ if os.environ.get('VERCEL'):
     # POC: Using file-based DB now, but keep cookie sessions for better performance
     SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SECURE = True  # HTTPS only on Vercel
-    SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SECURE = True  # Required for SameSite=None
+    SESSION_COOKIE_SAMESITE = 'None'  # Required for Vercel serverless
     SESSION_COOKIE_AGE = 86400  # 24 hours
+    SESSION_SAVE_EVERY_REQUEST = True  # Ensure session is saved on every request
+    
+    # CSRF settings for Vercel serverless functions
+    CSRF_COOKIE_SECURE = True  # Required for SameSite=None
+    CSRF_COOKIE_SAMESITE = 'None'
+    CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read for AJAX
+    CSRF_USE_SESSIONS = False  # Use cookie instead of session for CSRF token
     
     # POC: Admin credentials (created during build in build_files.sh)
     os.environ.setdefault('DJANGO_SUPERUSER_USERNAME', 'admin')
