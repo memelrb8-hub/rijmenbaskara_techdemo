@@ -24,9 +24,10 @@ class VercelDatabaseMiddleware:
             self.ensure_database()
             self._initialized = True
         
-        # POC: Auto-login all users as admin
-        request.session['is_authenticated'] = True
-        request.session['username'] = 'admin'
+        # POC: Auto-login all users as admin (only if session is available)
+        if hasattr(request, 'session'):
+            request.session['is_authenticated'] = True
+            request.session['username'] = 'admin'
         
         return self.get_response(request)
     
