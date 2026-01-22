@@ -29,13 +29,9 @@ def format_article_date(timestamp_str):
 @register.filter(name='is_staff')
 def is_staff(request):
     """
-    Check if user is authenticated and has staff/admin privileges.
+    Check if user is authenticated via session.
     """
-    return (hasattr(request, 'user') and 
-            hasattr(request.user, 'is_authenticated') and
-            request.user.is_authenticated and 
-            hasattr(request.user, 'is_staff') and 
-            request.user.is_staff)
+    return request.session.get('is_authenticated', False)
 
 
 @register.simple_tag(takes_context=True)

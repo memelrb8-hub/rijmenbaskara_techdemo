@@ -13,6 +13,11 @@ import os
 from datetime import datetime
 import zipfile
 import io
+from functools import wraps
+
+# Authentication storage
+AUTH_STORE_DIR = Path(settings.BASE_DIR) / "auth_store"
+CREDENTIALS_FILE = AUTH_STORE_DIR / "credentials.json"
 
 # File-based article storage (local file management)
 ARTICLES_DIR = Path(settings.BASE_DIR) / "articles_store"
@@ -23,6 +28,65 @@ if not os.environ.get('VERCEL'):
     ARTICLES_COVERS_DIR.mkdir(exist_ok=True)
 else:
     ARTICLES_COVERS_DIR = ARTICLES_DIR / "covers"
+
+
+# Authentication helper functions
+def _load_credentials():
+    """Load credentials from JSON file"""
+    if CREDENTIALS_FILE.exists():
+        try:
+            return json.loads(CREDENTIALS_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return {"users": []}
+
+
+def _verify_credentials(username, password):
+    """Verify username and password against stored credentials"""
+    creds = _load_credentials()
+    for user in creds.get("users", []):
+        if user.get("username") == username and user.get("password") == password:
+            return True
+    return False
+
+
+def login_required(view_func):
+    """Decorator to require login for a view"""
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.session.get('is_authenticated'):
+            return redirect('login')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+# Authentication views
+def login_view(request):
+    """Handle user login"""
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        
+        if _verify_credentials(username, password):
+            request.session['is_authenticated'] = True
+            request.session['username'] = username
+            next_url = request.GET.get('next', 'home')
+            return redirect(next_url)
+        else:
+            return render(request, 'login.html', {'error': 'Invalid username or password'})
+    
+    # If already logged in, redirect to home
+    if request.session.get('is_authenticated'):
+        return redirect('home')
+    
+    return render(request, 'login.html')
+
+
+def logout_view(request):
+    """Handle user logout"""
+    request.session.flush()
+    messages.success(request, 'You have been logged out successfully.')
+    return redirect('home')
 
 
 def _slugify(value: str) -> str:
@@ -112,10 +176,9 @@ def _save_project_image(uploaded_file):
 
 
 def _ensure_staff(request):
-    # On Vercel, request.user doesn't exist (no auth middleware)
-    if not hasattr(request, 'user') or not request.user.is_authenticated or not request.user.is_staff:
-        if hasattr(request, 'user'):
-            messages.error(request, "Admins only.")
+    """Check if user is authenticated via session"""
+    if not request.session.get('is_authenticated'):
+        messages.error(request, "Please log in to access this page.")
         return False
     return True
 
