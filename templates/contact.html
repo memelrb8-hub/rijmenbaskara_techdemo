@@ -35,6 +35,9 @@
                 <a class="nav__link" href="{% admin_url 'manage_articles' %}">Manage</a>
                 <a class="nav__link" href="{% admin_url 'add_article' %}">Add</a>
                 <a class="nav__link" href="{% admin_url 'export_content_backup' %}" title="Download backup">📦 Export</a>
+                <a class="nav__link" href="{% url 'logout' %}">Logout</a>
+              {% else %}
+                <a class="nav__link" href="{% url 'login' %}">Login</a>
               {% endif %}
               <a class="nav__link" href="{% admin_url 'about' %}">About</a>
               <a class="nav__link is-active" href="{% admin_url 'contact' %}">Contact</a>

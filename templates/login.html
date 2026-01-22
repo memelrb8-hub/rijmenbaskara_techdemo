@@ -1,0 +1,227 @@
+{% load static %}
+{% load article_extras %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="referrer" content="origin" />
+  <title>Login - Rijmen & Baskara</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <style>
+    .login-content {
+      padding: 80px 0;
+      min-height: calc(100vh - 200px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-box {
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .login-title {
+      font-family: var(--serif);
+      font-size: 56px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      color: var(--ink);
+    }
+
+    .login-subtitle {
+      font-family: var(--sans);
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    .error-message {
+      background: rgba(220, 38, 38, 0.1);
+      color: #dc2626;
+      padding: 16px 20px;
+      border-radius: 4px;
+      margin-bottom: 32px;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+      border: 1px solid rgba(220, 38, 38, 0.2);
+    }
+
+    [data-theme="dark"] .error-message {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-label {
+      display: block;
+      font-family: var(--sans);
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--ink);
+      margin-bottom: 8px;
+      letter-spacing: 0.01em;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid var(--input-border);
+      background: var(--input-bg);
+      color: var(--ink);
+      border-radius: 4px;
+      font-family: var(--sans);
+      font-size: 15px;
+      transition: border-color 0.2s ease, background-color 0.3s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--ink);
+    }
+
+    .form-input::placeholder {
+      color: var(--muted);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--ink);
+      color: var(--bg);
+      border: none;
+      border-radius: 4px;
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+      margin-top: 8px;
+    }
+
+    .btn-login:hover {
+      opacity: 0.85;
+    }
+
+    .btn-login:active {
+      opacity: 0.7;
+    }
+
+    .back-link {
+      text-align: center;
+      margin-top: 32px;
+    }
+
+    .back-link a {
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .back-link a:hover {
+      color: var(--ink);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+
+    @media (max-width: 768px) {
+      .login-title {
+        font-size: 42px;
+      }
+      
+      .login-content {
+        padding: 40px 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-frame">
+    <div class="page" role="document">
+      <div class="page-scroll" id="pageScroll">
+
+        <!-- Top navigation -->
+        <header class="topbar">
+          <div class="container topbar__inner">
+            <div class="brand">
+              <a href="{% url 'home' %}" class="brand__link">R&amp;B</a>
+            </div>
+
+            <nav class="nav" aria-label="Primary">
+              <a class="nav__link" href="{% url 'works' %}">Works</a>
+              <a class="nav__link" href="{% url 'articles' %}">Article</a>
+              <a class="nav__link" href="{% url 'about' %}">About</a>
+              <a class="nav__link" href="{% url 'contact' %}">Contact</a>
+              <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                <span class="theme-icon">☀️</span>
+              </button>
+            </nav>
+          </div>
+        </header>
+
+        <!-- Main content -->
+        <main class="content login-content">
+          <div class="container">
+            <div class="login-box">
+              <div class="login-header">
+                <h1 class="login-title">Welcome Back</h1>
+                <p class="login-subtitle">Please sign in to continue</p>
+              </div>
+
+              {% if error %}
+              <div class="error-message">
+                {{ error }}
+              </div>
+              {% endif %}
+
+              <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                  <label for="username" class="form-label">Username</label>
+                  <input type="text" id="username" name="username" class="form-input" required autofocus>
+                </div>
+                <div class="form-group">
+                  <label for="password" class="form-label">Password</label>
+                  <input type="password" id="password" name="password" class="form-input" required>
+                </div>
+                <button type="submit" class="btn-login">Sign In</button>
+              </form>
+
+              <div class="back-link">
+                <a href="{% url 'home' %}">← Back to Home</a>
+              </div>
+            </div>
+          </div>
+        </main>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="{% static 'js/theme-toggle.js' %}"></script>
+</body>
+</html>
