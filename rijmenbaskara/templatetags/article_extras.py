@@ -29,9 +29,9 @@ def format_article_date(timestamp_str):
 @register.filter(name='is_staff')
 def is_staff(request):
     """
-    Check if user is authenticated via session.
+    POC: Always return True - default to admin view for all users.
     """
-    return request.session.get('is_authenticated', False)
+    return True
 
 
 @register.simple_tag(takes_context=True)

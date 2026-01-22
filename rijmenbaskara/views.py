@@ -51,11 +51,10 @@ def _verify_credentials(username, password):
 
 
 def login_required(view_func):
-    """Decorator to require login for a view"""
+    """POC: Decorator disabled - all views accessible"""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        if not request.session.get('is_authenticated'):
-            return redirect('login')
+        # POC: Always allow access
         return view_func(request, *args, **kwargs)
     return wrapper
 
@@ -176,10 +175,7 @@ def _save_project_image(uploaded_file):
 
 
 def _ensure_staff(request):
-    """Check if user is authenticated via session"""
-    if not request.session.get('is_authenticated'):
-        messages.error(request, "Please log in to access this page.")
-        return False
+    """POC: Always return True - all users are staff"""
     return True
 
 # Preset tags
@@ -253,8 +249,8 @@ def home(request):
 
 def works(request):
     projects = _load_projects()
-    # On Vercel, request.user doesn't exist (no auth middleware)
-    is_admin = hasattr(request, 'user') and request.user.is_authenticated and request.user.is_staff
+    # POC: Always admin mode
+    is_admin = True
     return render(request, 'works.html', {
         "projects": projects,
         "is_admin": is_admin,
@@ -838,10 +834,7 @@ def api_gallery_items(request, gallery_id):
         return JsonResponse({"items": items, "limit": WORKS_MAX_ITEMS}, status=200)
 
     # POST
-    # On Vercel, request.user doesn't exist (no auth middleware)
-    if not hasattr(request, 'user') or not request.user.is_authenticated or not request.user.is_staff:
-        return JsonResponse({"error": "Unauthorized"}, status=403)
-
+    # POC: All users have admin access
     if _gallery_item_count(gallery_id) >= WORKS_MAX_ITEMS:
         return JsonResponse({"error": f"Limit reached ({WORKS_MAX_ITEMS} photos). Remove one to add another."}, status=409)
 
@@ -874,9 +867,7 @@ def api_gallery_items(request, gallery_id):
 
 @require_http_methods(["DELETE"])
 def api_gallery_item_detail(request, gallery_id, item_id):
-    # On Vercel, request.user doesn't exist (no auth middleware)
-    if not hasattr(request, 'user') or not request.user.is_authenticated or not request.user.is_staff:
-        return JsonResponse({"error": "Unauthorized"}, status=403)
+    # POC: All users have admin access
     _delete_gallery_item(gallery_id, item_id)
     return JsonResponse({"success": True})
 
